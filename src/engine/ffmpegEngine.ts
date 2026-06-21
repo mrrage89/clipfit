@@ -112,7 +112,16 @@ export async function runMakeItFit(opts: {
     engine.off('progress', onProg);
     engine.off('log', onEnc);
   }
-  if (failed) throw new Error(`Conversion failed: ${errorTail(encLogs)}`);
+  if (failed) {
+    const joined = encLogs.join('\n');
+    if (/oom|out of memory|aborted|memory access out of bounds/i.test(joined)) {
+      throw new Error(
+        'This video is too large or high-resolution for in-browser processing — the engine ran ' +
+          'out of memory. Try a shorter clip or a smaller / lower-resolution source.',
+      );
+    }
+    throw new Error(`Conversion failed: ${errorTail(encLogs)}`);
+  }
 
   let data: Uint8Array;
   try {

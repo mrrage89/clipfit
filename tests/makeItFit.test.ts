@@ -16,7 +16,7 @@ describe('buildMakeItFitArgs', () => {
       [
         '-i', 'input.mp4',
         '-vf', SCALE,
-        '-c:v', 'libx264', '-preset', 'veryfast', '-b:v', '3000k',
+        '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-b:v', '3000k',
         '-c:a', 'aac', '-b:a', '128k',
         '-movflags', '+faststart',
         'output.mp4',
