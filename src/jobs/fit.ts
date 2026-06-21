@@ -11,9 +11,7 @@ export const fitJob: Job<FitParams> = {
   id: 'fit',
   label: 'Make it fit',
   accept: 'video/*',
-  outputName: 'output.mp4',
-  mime: 'video/mp4',
-  downloadName: 'clipfit-output.mp4',
+  output: () => ({ name: 'output.mp4', mime: 'video/mp4', downloadName: 'clipfit-output.mp4' }),
   buildPasses(input, output, ctx, params) {
     const audioKbps = params.mute ? 0 : 128;
     const videoKbps = computeVideoKbps({

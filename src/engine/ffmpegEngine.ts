@@ -61,7 +61,8 @@ export async function runJob<P>(opts: {
     );
   }
 
-  const passes = opts.job.buildPasses(input, opts.job.outputName, ctx, opts.params);
+  const out = opts.job.output(opts.params);
+  const passes = opts.job.buildPasses(input, out.name, ctx, opts.params);
 
   const logs: string[] = [];
   const onLog = ({ message }: { message: string }) => logs.push(message);
@@ -98,14 +99,14 @@ export async function runJob<P>(opts: {
 
   let data: Uint8Array;
   try {
-    data = (await engine.readFile(opts.job.outputName)) as Uint8Array;
+    data = (await engine.readFile(out.name)) as Uint8Array;
   } catch {
     throw new Error(`Conversion produced no output: ${errorTail(logs)}`);
   }
 
   return {
-    blob: new Blob([new Uint8Array(data)], { type: opts.job.mime }),
-    mime: opts.job.mime,
-    downloadName: opts.job.downloadName,
+    blob: new Blob([new Uint8Array(data)], { type: out.mime }),
+    mime: out.mime,
+    downloadName: out.downloadName,
   };
 }

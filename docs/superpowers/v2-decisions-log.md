@@ -26,3 +26,17 @@ asking, recording each here for later review. Newest at the bottom.
   accepts files; otherwise just Download (desktop browsers without share targets).
 - **Result previews video/image/audio** by MIME, forward-looking for the GIF /
   extract-audio tools coming in Phase 2.
+
+### Phase 2 (tools)
+- **Job.output(params)**: changed the Job interface so output name/mime/download
+  name can depend on params (convert → mp4/webm, audio → mp3/wav need this).
+- **GIF**: two-pass palettegen/paletteuse (quality), defaults 12 fps / 480 px.
+- **Convert WebM**: VP9 constant-quality (`-crf 33 -b:v 0`) + Opus.
+- **Trim**: input-seek `-ss` + `-t` duration + `-c copy` (fast, keyframe-aligned;
+  start/end entered in seconds — duration NOT shown to avoid loading the engine
+  early; if end > duration ffmpeg just stops at EOF). Accuracy tradeoff accepted.
+- **5 UI pieces delegated to gpt-oss-20b** (ToolPicker + Gif/Audio/Convert/Trim
+  panels), reviewed: all clean. ToolPicker uses `React.CSSProperties` via the
+  @types/react UMD global — typechecks fine (same as Dropzone).
+- **All 6 tool arg-variants verified** through native ffmpeg (gif/mp3/wav/mp4/
+  webm/trim all produce valid non-empty output).
