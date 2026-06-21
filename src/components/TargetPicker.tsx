@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import { useState } from 'react';
 import type { SizeTarget } from '../types';
 
 const MB = 1024 * 1024;
-
 export const PRESETS: SizeTarget[] = [
   { label: 'Discord (10 MB)', bytes: 10 * MB },
   { label: 'Discord (25 MB)', bytes: 25 * MB },
@@ -16,47 +15,36 @@ export function TargetPicker({
 }: {
   onStart: (target: SizeTarget, mute: boolean) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      const value = Number(inputRef.current?.value);
-      if (value > 0) {
-        onStart(
-          { label: `Custom (${value} MB)`, bytes: value * MB },
-          false
-        );
-      }
-    }
-  };
-
+  const [mute, setMute] = useState(false);
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
-      {PRESETS.map((preset) => (
-        <button
-          key={preset.label}
-          onClick={() => onStart(preset, false)}
-          style={{
-            padding: '6px 12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            background: '#f5f5f5',
-            cursor: 'pointer',
-          }}
-        >
-          {preset.label}
-        </button>
-      ))}
-      <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        Custom MB:
-        <input
-          type="number"
-          min={1}
-          ref={inputRef}
-          onKeyDown={handleKeyDown}
-          style={{ width: '80px', padding: '4px' }}
-        />
+    <div>
+      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: '8px 0' }}>
+        <input type="checkbox" checked={mute} onChange={(e) => setMute(e.target.checked)} />
+        Mute (remove audio)
       </label>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {PRESETS.map((p) => (
+          <button key={p.label} onClick={() => onStart(p, mute)}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <label>
+          Custom MB:{' '}
+          <input
+            type="number"
+            min={1}
+            style={{ width: 80 }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const mb = Number((e.target as HTMLInputElement).value);
+                if (mb > 0) onStart({ label: `Custom (${mb} MB)`, bytes: mb * MB }, mute);
+              }
+            }}
+          />
+        </label>
+      </div>
     </div>
   );
 }
