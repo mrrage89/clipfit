@@ -7,7 +7,7 @@ import { loadEngine, runMakeItFit } from './engine/ffmpegEngine';
 import { humanizeBytes } from './lib/format';
 import type { JobPhase, JobResult, SizeTarget } from './types';
 
-const MAX_BYTES = 250 * 1024 * 1024; // wasm core has a fixed (non-growable) heap
+const MAX_BYTES = 500 * 1024 * 1024; // single-thread core grows its heap as needed
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
@@ -29,7 +29,7 @@ export default function App() {
     if (f.size > MAX_BYTES) {
       setError(
         `That file is ${humanizeBytes(f.size)}. In-browser processing is limited to about ` +
-          `250 MB — use a desktop tool for larger files.`,
+          `500 MB — use a desktop tool for larger files.`,
       );
       return;
     }
