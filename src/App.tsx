@@ -6,6 +6,7 @@ import { AudioPanel } from './components/AudioPanel';
 import { ConvertPanel } from './components/ConvertPanel';
 import { TrimPanel } from './components/TrimPanel';
 import { CropTool } from './components/CropTool';
+import { EditPanel } from './components/EditPanel';
 import { ToolPicker } from './components/ToolPicker';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
@@ -16,6 +17,7 @@ import { audioJob } from './jobs/audio';
 import { convertJob } from './jobs/convert';
 import { trimJob } from './jobs/trim';
 import { cropJob } from './jobs/crop';
+import { editJob } from './jobs/edit';
 import { humanizeBytes } from './lib/format';
 import type { Job } from './jobs/types';
 import type { JobPhase, JobResult } from './types';
@@ -29,6 +31,7 @@ const TOOLS = [
   { id: 'convert', label: 'Convert' },
   { id: 'trim', label: 'Trim' },
   { id: 'crop', label: 'Crop' },
+  { id: 'edit', label: 'Edit' },
 ];
 
 export default function App() {
@@ -118,6 +121,7 @@ export default function App() {
             {toolId === 'convert' && <ConvertPanel onRun={(p) => run(convertJob, p)} />}
             {toolId === 'trim' && <TrimPanel onRun={(p) => run(trimJob, p)} />}
             {toolId === 'crop' && <CropTool file={file} onRun={(rect) => run(cropJob, rect)} />}
+            {toolId === 'edit' && <EditPanel onRun={(p) => run(editJob, p)} />}
             <button onClick={() => setFile(null)} style={{ marginTop: 12 }}>
               Choose a different file
             </button>
