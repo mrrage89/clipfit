@@ -22,7 +22,7 @@ export function buildMakeItFitArgs(p: MakeItFitParams): string[][] {
     [
       '-i', p.inputName,
       '-vf', scale,
-      '-c:v', 'libx264', '-preset', 'veryfast', '-b:v', `${p.videoKbps}k`,
+      '-c:v', 'libx264', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', '-b:v', `${p.videoKbps}k`,
       ...audio,
       '-movflags', '+faststart',
       p.outputName,
