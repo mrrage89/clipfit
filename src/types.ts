@@ -1,9 +1,3 @@
-export interface VideoMeta {
-  durationSec: number;
-  sizeBytes: number;
-  hasAudio: boolean;
-}
-
 export interface SizeTarget {
   label: string; // e.g. "Discord (25 MB)"
   bytes: number; // e.g. 25 * 1024 * 1024
