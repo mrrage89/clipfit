@@ -9,26 +9,17 @@ const OUTPUT = 'output.mp4';
 
 let enginePromise: Promise<FFmpeg> | null = null;
 
-function crossOriginIsolatedAvailable(): boolean {
-  return typeof crossOriginIsolated !== 'undefined' && crossOriginIsolated === true;
-}
-
 async function createEngine(): Promise<FFmpeg> {
-  // Multithread core needs SharedArrayBuffer (cross-origin isolation);
-  // fall back to the single-thread core when that's unavailable.
-  const mt = crossOriginIsolatedAvailable();
-  const pkg = mt ? 'core-mt' : 'core';
-  const baseURL = `https://unpkg.com/@ffmpeg/${pkg}@${CORE_VERSION}/dist/esm`;
-
+  // Use the SINGLE-THREAD core deliberately: it has a growable heap, so large
+  // real-world videos don't hit the fixed ~1GB ceiling of the multithread core
+  // (which OOMs on a typical 150-200MB phone clip). Slower, but reliable.
+  // Future optimization: multithread core + WORKERFS streaming of the input.
+  const baseURL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
   const ffmpeg = new FFmpeg();
-  const config: { coreURL: string; wasmURL: string; workerURL?: string } = {
+  await ffmpeg.load({
     coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
     wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-  };
-  if (mt) {
-    config.workerURL = await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript');
-  }
-  await ffmpeg.load(config);
+  });
   return ffmpeg;
 }
 
