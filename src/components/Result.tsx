@@ -25,7 +25,7 @@ export function Result({ result, onReset }: { result: JobResult; onReset: () => 
       </p>
 
       <a href={url} download={result.downloadName}>
-        <button>Download</button>
+        <button className="primary">Download</button>
       </a>
       {canShare && (
         <button

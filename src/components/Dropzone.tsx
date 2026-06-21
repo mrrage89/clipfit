@@ -4,6 +4,7 @@ export function Dropzone({ onFile }: { onFile: (file: File) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <div
+      className="dropzone"
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => {
         e.preventDefault();
@@ -11,16 +12,22 @@ export function Dropzone({ onFile }: { onFile: (file: File) => void }) {
         if (f) onFile(f);
       }}
       onClick={() => inputRef.current?.click()}
-      style={{
-        border: '2px dashed var(--border)',
-        padding: '3rem',
-        textAlign: 'center',
-        cursor: 'pointer',
-        borderRadius: 'var(--radius)',
-        background: 'color-mix(in srgb, var(--surface) 50%, transparent)',
-      }}
     >
-      <div style={{ fontSize: 16, marginBottom: 4 }}>Drop a video here, or click to choose</div>
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ color: 'var(--accent)', marginBottom: 10 }}
+        aria-hidden="true"
+      >
+        <path d="M12 15V3m0 0L8 7m4-4l4 4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" />
+      </svg>
+      <div style={{ fontSize: 16, fontWeight: 500 }}>Drop a video here, or click to choose</div>
       <small className="muted">Your file never leaves your device.</small>
       <input
         ref={inputRef}
