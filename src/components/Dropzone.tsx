@@ -2,49 +2,36 @@ import { useRef } from 'react';
 
 export function Dropzone({ onFile }: { onFile: (file: File) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) onFile(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  };
-
-  const handleClick = () => {
-    inputRef.current?.click();
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) onFile(file);
-  };
-
   return (
     <div
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => {
+        e.preventDefault();
+        const f = e.dataTransfer.files?.[0];
+        if (f) onFile(f);
+      }}
+      onClick={() => inputRef.current?.click()}
       style={{
-        border: '2px dashed #ccc',
+        border: '2px dashed var(--border)',
         padding: '3rem',
         textAlign: 'center',
-        borderRadius: '8px',
         cursor: 'pointer',
-        color: '#666',
+        borderRadius: 'var(--radius)',
+        background: 'color-mix(in srgb, var(--surface) 50%, transparent)',
       }}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      onClick={handleClick}
     >
+      <div style={{ fontSize: 16, marginBottom: 4 }}>Drop a video here, or click to choose</div>
+      <small className="muted">Your file never leaves your device.</small>
       <input
+        ref={inputRef}
         type="file"
         accept="video/*"
-        ref={inputRef}
-        style={{ display: 'none' }}
-        onChange={handleChange}
+        hidden
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onFile(f);
+        }}
       />
-      <div>Drop a video here, or click to choose</div>
-      <small>Your file never leaves your device.</small>
     </div>
   );
 }

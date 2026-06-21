@@ -1,36 +1,21 @@
-import React from 'react';
-
-export interface ProgressProps {
-  phase: string;
-  ratio: number;
-}
-
-export const Progress: React.FC<ProgressProps> = ({ phase, ratio }) => {
+export function Progress({ phase, ratio }: { phase: string; ratio: number }) {
   const pct = Math.round(ratio * 100);
-
-  const outerStyle: React.CSSProperties = {
-    backgroundColor: '#e0e0e0',
-    borderRadius: '6px',
-    height: '12px',
-    width: '100%',
-    overflow: 'hidden',
-  };
-
-  const innerStyle: React.CSSProperties = {
-    backgroundColor: '#4f46e5',
-    height: '12px',
-    width: `${pct}%`,
-    borderRadius: '6px',
-  };
-
   return (
     <div>
-      <div style={{ marginBottom: '8px' }}>
+      <p className="muted">
         {phase === 'loading-engine' ? 'Loading engine…' : `Processing… ${pct}%`}
-      </div>
-      <div style={outerStyle}>
-        <div style={innerStyle} />
+      </p>
+      <div style={{ background: 'var(--surface-2)', borderRadius: 6, height: 10, overflow: 'hidden' }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: 10,
+            background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
+            boxShadow: '0 0 12px var(--glow)',
+            transition: 'width 0.2s',
+          }}
+        />
       </div>
     </div>
   );
-};
+}

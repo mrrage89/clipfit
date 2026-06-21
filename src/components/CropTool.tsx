@@ -88,7 +88,7 @@ export function CropTool({
     setBox(clamp({ x: (dispW - w) / 2, y: (dispH - h) / 2, w, h }));
   }
 
-  if (err) return <p style={{ color: '#b91c1c' }}>{err}</p>;
+  if (err) return <p style={{ color: 'var(--danger)' }}>{err}</p>;
   if (!frame) return <p>Preparing preview… (loading engine on first use)</p>;
 
   return (
@@ -128,7 +128,7 @@ export function CropTool({
             top: box.y,
             width: box.w,
             height: box.h,
-            border: '2px solid #4f46e5',
+            border: '2px solid var(--accent)',
             boxShadow: '0 0 0 9999px rgba(0,0,0,0.35)',
             cursor: 'move',
             boxSizing: 'border-box',
@@ -142,7 +142,7 @@ export function CropTool({
               bottom: -7,
               width: 14,
               height: 14,
-              background: '#4f46e5',
+              background: 'var(--accent)',
               borderRadius: 3,
               cursor: 'nwse-resize',
             }}

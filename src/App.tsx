@@ -8,6 +8,7 @@ import { TrimPanel } from './components/TrimPanel';
 import { CropTool } from './components/CropTool';
 import { EditPanel } from './components/EditPanel';
 import { ToolPicker } from './components/ToolPicker';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
 import { loadEngine, runJob } from './engine/ffmpegEngine';
@@ -94,21 +95,29 @@ export default function App() {
     <main
       style={{ maxWidth: 640, margin: '2rem auto', fontFamily: 'system-ui', padding: '0 1rem' }}
     >
-      <h1>ClipFit — private video toolkit</h1>
-      <p style={{ color: '#555' }}>
-        Compress, convert, trim & more — entirely in your browser. Your file is never uploaded.
+      <header
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+      >
+        <h1 style={{ margin: 0, fontSize: 24 }}>
+          <span className="accent-text">Clip</span>Fit
+        </h1>
+        <ThemeSwitcher />
+      </header>
+      <p className="muted" style={{ marginTop: 4 }}>
+        Compress, convert, trim, crop & more — entirely in your browser. Your file is never
+        uploaded.
       </p>
 
       <ToolPicker tools={TOOLS} active={toolId} onSelect={selectTool} />
 
-      {error && <p style={{ color: '#b91c1c', marginTop: 12 }}>{error}</p>}
+      {error && <p style={{ color: 'var(--danger)', marginTop: 12 }}>{error}</p>}
 
       <div style={{ marginTop: 16 }}>
         {!file && <Dropzone onFile={onFile} />}
 
         {file && phase === 'idle' && (
           <>
-            <p style={{ fontSize: 14, color: '#555' }}>
+            <p className="muted" style={{ fontSize: 14 }}>
               {file.name} — {humanizeBytes(file.size)}
             </p>
             {toolId === 'fit' && (
