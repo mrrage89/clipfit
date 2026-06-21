@@ -40,3 +40,22 @@ asking, recording each here for later review. Newest at the bottom.
   @types/react UMD global — typechecks fine (same as Dropzone).
 - **All 6 tool arg-variants verified** through native ffmpeg (gif/mp3/wav/mp4/
   webm/trim all produce valid non-empty output).
+
+### Phase 3 (crop)
+- **Crop preview frame via ffmpeg** `extractFrame` (works for any format, unlike
+  `<video>`). Note: it writes the input to the FS, and the crop run writes it
+  again (double write) — acceptable for now, could cache later.
+- **Crop box UI**: container-level pointer handling (no setPointerCapture — drag
+  ends on pointer-up/leave), single bottom-right resize handle, aspect presets
+  (Free/1:1/9:16/16:9), area outside dimmed via boxShadow. Coordinate mapping is
+  pure + tested (display→source px, even dims).
+
+### Phase 4 (edit)
+- **Edit composer**: rotate via transpose (90=1, 180=1+1, 270=2), flip hflip/
+  vflip, speed = setpts + atempo (UI limits speed to 0.5–2 so a single atempo is
+  valid), frame rate = fps filter, volume = volume=NdB. Copies video when there's
+  no video filter (volume-only), copies audio when there's no audio filter, uses
+  -an when the source has no audio. Composer is pure + TDD'd.
+- **EditPanel written directly (not delegated):** its controls carry literal
+  types (rotate 0|90|180|270) and import EditParams to stay in sync — correctness
+  outweighed the delegation token saving for this one.
