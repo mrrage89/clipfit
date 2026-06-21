@@ -151,15 +151,22 @@ export async function extractFilmstrip(file: File, count: number): Promise<strin
   const engine = await loadEngine();
   const input = await ensureInput(engine, file);
   const ctx = await getCtx(engine, input);
+  const cap = Math.max(0, ctx.durationSec - 0.1); // a seek at exactly EOF yields no frame
   const times = thumbTimes(ctx.durationSec, count);
   const urls: string[] = [];
   for (let i = 0; i < times.length; i++) {
     const name = `thumb${i}.png`;
-    await engine.exec([
-      '-ss', String(times[i]), '-i', input, '-frames:v', '1', '-vf', 'scale=160:-1', '-y', name,
-    ]);
-    const data = (await engine.readFile(name)) as Uint8Array;
-    urls.push(URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' })));
+    try {
+      await engine.exec([
+        '-ss', String(Math.min(times[i], cap)), '-i', input, '-frames:v', '1', '-vf', 'scale=160:-1', '-y', name,
+      ]);
+      const data = (await engine.readFile(name)) as Uint8Array;
+      if (data && data.length > 0) {
+        urls.push(URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' })));
+      }
+    } catch {
+      /* skip a thumbnail that fails to render; the scrubber still works */
+    }
   }
   return urls;
 }

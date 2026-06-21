@@ -155,9 +155,11 @@ export function StudioEditor({
         </div>
       </div>
 
-      {strip.length > 0 && (
+      {duration > 0 && (
         <div>
-          <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>Trim</div>
+          <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
+            Trim {strip.length === 0 && '(loading thumbnails…)'}
+          </div>
           <TrimScrubber
             duration={duration}
             strip={strip}

@@ -79,6 +79,7 @@ export function TrimScrubber({
           borderRadius: 8,
           overflow: 'hidden',
           border: '1px solid var(--border)',
+          background: 'var(--surface-2)',
           touchAction: 'none',
           userSelect: 'none',
         }}
