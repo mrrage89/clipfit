@@ -1,38 +1,19 @@
 import { useState } from 'react';
 
-export interface GifPanelProps {
-  onRun: (params: { fps: number; width: number }) => void;
-}
-
-export function GifPanel({ onRun }: GifPanelProps) {
-  const [fps, setFps] = useState<number>(12);
-  const [width, setWidth] = useState<number>(480);
-
-  const handleRun = () => {
-    onRun({ fps, width });
-  };
-
+export function GifPanel({ onRun }: { onRun: (params: { fps: number; width: number }) => void }) {
+  const [fps, setFps] = useState(12);
+  const [width, setWidth] = useState(480);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '200px' }}>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+      <label>
         FPS
-        <input
-          type="number"
-          value={fps}
-          onChange={(e) => setFps(Number(e.target.value))}
-          style={{ width: '100%' }}
-        />
+        <input type="number" value={fps} style={{ width: 80 }} onChange={(e) => setFps(Number(e.target.value))} />
       </label>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <label>
         Width (px)
-        <input
-          type="number"
-          value={width}
-          onChange={(e) => setWidth(Number(e.target.value))}
-          style={{ width: '100%' }}
-        />
+        <input type="number" value={width} style={{ width: 80 }} onChange={(e) => setWidth(Number(e.target.value))} />
       </label>
-      <button onClick={handleRun} style={{ marginTop: '8px', padding: '6px 12px' }}>
+      <button className="primary" onClick={() => onRun({ fps, width })}>
         Make GIF
       </button>
     </div>
