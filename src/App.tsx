@@ -1,28 +1,51 @@
 import { useState } from 'react';
 import { Dropzone } from './components/Dropzone';
 import { TargetPicker } from './components/TargetPicker';
+import { GifPanel } from './components/GifPanel';
+import { AudioPanel } from './components/AudioPanel';
+import { ConvertPanel } from './components/ConvertPanel';
+import { TrimPanel } from './components/TrimPanel';
+import { ToolPicker } from './components/ToolPicker';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
 import { loadEngine, runJob } from './engine/ffmpegEngine';
 import { fitJob } from './jobs/fit';
+import { gifJob } from './jobs/gif';
+import { audioJob } from './jobs/audio';
+import { convertJob } from './jobs/convert';
+import { trimJob } from './jobs/trim';
 import { humanizeBytes } from './lib/format';
-import type { JobPhase, JobResult, SizeTarget } from './types';
+import type { Job } from './jobs/types';
+import type { JobPhase, JobResult } from './types';
 
 const MAX_BYTES = 500 * 1024 * 1024; // single-thread core grows its heap as needed
 
+const TOOLS = [
+  { id: 'fit', label: 'Compress' },
+  { id: 'gif', label: 'GIF' },
+  { id: 'audio', label: 'Extract audio' },
+  { id: 'convert', label: 'Convert' },
+  { id: 'trim', label: 'Trim' },
+];
+
 export default function App() {
+  const [toolId, setToolId] = useState('fit');
   const [file, setFile] = useState<File | null>(null);
   const [phase, setPhase] = useState<JobPhase>('idle');
   const [ratio, setRatio] = useState(0);
   const [result, setResult] = useState<JobResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function reset() {
-    setFile(null);
+  function resetRun() {
     setPhase('idle');
     setRatio(0);
     setResult(null);
     setError(null);
+  }
+
+  function selectTool(id: string) {
+    setToolId(id);
+    resetRun(); // keep the file; just switch the tool
   }
 
   function onFile(f: File) {
@@ -35,10 +58,10 @@ export default function App() {
       return;
     }
     setFile(f);
-    setPhase('idle');
+    resetRun();
   }
 
-  async function onStart(target: SizeTarget, mute: boolean) {
+  async function run<P>(job: Job<P>, params: P, targetBytes?: number) {
     if (!file) return;
     setError(null);
     setRatio(0);
@@ -46,18 +69,13 @@ export default function App() {
       setPhase('loading-engine');
       await loadEngine();
       setPhase('processing');
-      const out = await runJob({
-        file,
-        job: fitJob,
-        params: { targetBytes: target.bytes, mute },
-        onProgress: setRatio,
-      });
+      const out = await runJob({ file, job, params, onProgress: setRatio });
       setResult({
         blob: out.blob,
         downloadName: out.downloadName,
         mime: out.mime,
         outputBytes: out.blob.size,
-        targetBytes: target.bytes,
+        targetBytes,
       });
       setPhase('done');
     } catch (e) {
@@ -70,34 +88,46 @@ export default function App() {
     <main
       style={{ maxWidth: 640, margin: '2rem auto', fontFamily: 'system-ui', padding: '0 1rem' }}
     >
-      <h1>ClipFit — make any video fit</h1>
+      <h1>ClipFit — private video toolkit</h1>
       <p style={{ color: '#555' }}>
-        Shrink a video to fit a size limit. Runs entirely in your browser — your file is never
-        uploaded.
+        Compress, convert, trim & more — entirely in your browser. Your file is never uploaded.
       </p>
 
-      {error && <p style={{ color: '#b91c1c' }}>{error}</p>}
+      <ToolPicker tools={TOOLS} active={toolId} onSelect={selectTool} />
 
-      {!file && <Dropzone onFile={onFile} />}
+      {error && <p style={{ color: '#b91c1c', marginTop: 12 }}>{error}</p>}
 
-      {file && phase === 'idle' && (
-        <>
-          <p style={{ fontSize: 14, color: '#555' }}>
-            Selected: {file.name} — {humanizeBytes(file.size)}. Large videos are downscaled to
-            ≤720p automatically.
-          </p>
-          <TargetPicker onStart={onStart} />
-          <button onClick={reset}>Choose a different file</button>
-        </>
-      )}
+      <div style={{ marginTop: 16 }}>
+        {!file && <Dropzone onFile={onFile} />}
 
-      {(phase === 'loading-engine' || phase === 'processing') && (
-        <Progress phase={phase} ratio={ratio} />
-      )}
+        {file && phase === 'idle' && (
+          <>
+            <p style={{ fontSize: 14, color: '#555' }}>
+              {file.name} — {humanizeBytes(file.size)}
+            </p>
+            {toolId === 'fit' && (
+              <TargetPicker
+                onStart={(t, mute) => run(fitJob, { targetBytes: t.bytes, mute }, t.bytes)}
+              />
+            )}
+            {toolId === 'gif' && <GifPanel onRun={(p) => run(gifJob, p)} />}
+            {toolId === 'audio' && <AudioPanel onRun={(p) => run(audioJob, p)} />}
+            {toolId === 'convert' && <ConvertPanel onRun={(p) => run(convertJob, p)} />}
+            {toolId === 'trim' && <TrimPanel onRun={(p) => run(trimJob, p)} />}
+            <button onClick={() => setFile(null)} style={{ marginTop: 12 }}>
+              Choose a different file
+            </button>
+          </>
+        )}
 
-      {phase === 'done' && result && <Result result={result} onReset={reset} />}
+        {(phase === 'loading-engine' || phase === 'processing') && (
+          <Progress phase={phase} ratio={ratio} />
+        )}
 
-      {phase === 'error' && <button onClick={reset}>Try again</button>}
+        {phase === 'done' && result && <Result result={result} onReset={resetRun} />}
+
+        {phase === 'error' && <button onClick={resetRun}>Try again</button>}
+      </div>
     </main>
   );
 }
