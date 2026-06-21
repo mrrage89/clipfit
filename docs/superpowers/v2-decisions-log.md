@@ -59,3 +59,27 @@ asking, recording each here for later review. Newest at the bottom.
 - **EditPanel written directly (not delegated):** its controls carry literal
   types (rotate 0|90|180|270) and import EditParams to stay in sync — correctness
   outweighed the delegation token saving for this one.
+
+## v3 redesign (2026-06-21)
+
+- **Theme system:** CSS-variable tokens selected by `data-theme` × `data-mode`
+  (6 palettes in src/theme/themes.css). Global element styling (button/input/
+  select) so components auto-theme; `.primary` = accent→accent-2 gradient + glow,
+  `.panel` = glass. ThemeSwitcher persists to localStorage (default studio/dark).
+- **Crop fix:** read the extracted frame's `naturalWidth/Height` instead of the
+  coded probe size (rotation metadata made phone videos preview wrong).
+- **studioJob (single pass):** combined trim+crop+edit in ONE ffmpeg pass —
+  serves the unified editor AND is the Phase 4 single-pass optimization. Stream-
+  copies when nothing needs re-encoding. Pure + TDD'd; verified via native ffmpeg.
+- **DONE this session:** v3 Phase 1 (theme) ✅, Phase 2 (crop fix) ✅, Phase 3
+  backend (studioJob + filmstrip math thumbTimes/nearestThumb) ✅. 42 tests green.
+- **REMAINING (handed off):**
+  - Phase 3 UI: a `StudioEditor` component combining preview + crop-box overlay +
+    a filmstrip trim scrubber (two draggable handles, in/out preview = nearest
+    thumb) + edit controls, with one Export wiring `studioJob`. Replace the
+    separate trim/crop/edit tool tabs with this one "Edit" tab. Reuse: CropTool's
+    box logic, EditPanel's controls, cropMath, filmstrip math, studioJob.
+  - Need an `extractFilmstrip(file, count)` engine helper (N thumbnails; use
+    `thumbTimes` for timestamps).
+  - Phase 4 remainder: cache the written input so extractFrame/filmstrip/export
+    don't each re-`writeFile` the whole file; then benchmark before/after.
