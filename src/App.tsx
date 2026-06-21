@@ -4,9 +4,7 @@ import { TargetPicker } from './components/TargetPicker';
 import { GifPanel } from './components/GifPanel';
 import { AudioPanel } from './components/AudioPanel';
 import { ConvertPanel } from './components/ConvertPanel';
-import { TrimPanel } from './components/TrimPanel';
-import { CropTool } from './components/CropTool';
-import { EditPanel } from './components/EditPanel';
+import { StudioEditor } from './components/StudioEditor';
 import { ToolPicker } from './components/ToolPicker';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { Progress } from './components/Progress';
@@ -16,9 +14,7 @@ import { fitJob } from './jobs/fit';
 import { gifJob } from './jobs/gif';
 import { audioJob } from './jobs/audio';
 import { convertJob } from './jobs/convert';
-import { trimJob } from './jobs/trim';
-import { cropJob } from './jobs/crop';
-import { editJob } from './jobs/edit';
+import { studioJob } from './jobs/studio';
 import { humanizeBytes } from './lib/format';
 import type { Job } from './jobs/types';
 import type { JobPhase, JobResult } from './types';
@@ -30,8 +26,6 @@ const TOOLS = [
   { id: 'gif', label: 'GIF' },
   { id: 'audio', label: 'Extract audio' },
   { id: 'convert', label: 'Convert' },
-  { id: 'trim', label: 'Trim' },
-  { id: 'crop', label: 'Crop' },
   { id: 'edit', label: 'Edit' },
 ];
 
@@ -128,9 +122,7 @@ export default function App() {
             {toolId === 'gif' && <GifPanel onRun={(p) => run(gifJob, p)} />}
             {toolId === 'audio' && <AudioPanel onRun={(p) => run(audioJob, p)} />}
             {toolId === 'convert' && <ConvertPanel onRun={(p) => run(convertJob, p)} />}
-            {toolId === 'trim' && <TrimPanel onRun={(p) => run(trimJob, p)} />}
-            {toolId === 'crop' && <CropTool file={file} onRun={(rect) => run(cropJob, rect)} />}
-            {toolId === 'edit' && <EditPanel onRun={(p) => run(editJob, p)} />}
+            {toolId === 'edit' && <StudioEditor file={file} onRun={(p) => run(studioJob, p)} />}
             <button onClick={() => setFile(null)} style={{ marginTop: 12 }}>
               Choose a different file
             </button>

@@ -1,6 +1,7 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
-import { probeMedia } from '../lib/probe';
+import { probeMedia, type ProbeResult } from '../lib/probe';
+import { thumbTimes } from '../lib/filmstrip';
 import type { Job } from '../jobs/types';
 
 const CORE_VERSION = '0.12.10';
@@ -8,8 +9,7 @@ const CORE_VERSION = '0.12.10';
 let enginePromise: Promise<FFmpeg> | null = null;
 
 async function createEngine(): Promise<FFmpeg> {
-  // Single-thread core: growable heap, reliable on large real-world videos
-  // (the multithread core has a fixed ~1GB heap that OOMs on normal phone clips).
+  // Single-thread core: growable heap, reliable on large real-world videos.
   const baseURL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
   const ffmpeg = new FFmpeg();
   await ffmpeg.load({
@@ -28,6 +28,28 @@ function inputNameFor(file: File): string {
   const dot = file.name.lastIndexOf('.');
   const ext = dot >= 0 ? file.name.slice(dot) : '.mp4';
   return `input${ext}`;
+}
+
+// Cache the written input + its probe so repeated operations on the same file
+// (preview frame, filmstrip, export) don't re-copy/re-probe the whole video.
+let cachedFile: File | null = null;
+let cachedName: string | null = null;
+let cachedCtx: ProbeResult | null = null;
+
+async function ensureInput(engine: FFmpeg, file: File): Promise<string> {
+  if (cachedFile === file && cachedName) return cachedName;
+  const name = inputNameFor(file);
+  await engine.writeFile(name, await fetchFile(file));
+  cachedFile = file;
+  cachedName = name;
+  cachedCtx = null;
+  return name;
+}
+
+async function getCtx(engine: FFmpeg, input: string): Promise<ProbeResult> {
+  if (cachedCtx) return cachedCtx;
+  cachedCtx = await probeMedia(engine, input);
+  return cachedCtx;
 }
 
 function errorTail(logs: string[]): string {
@@ -50,10 +72,8 @@ export async function runJob<P>(opts: {
   onProgress?: (ratio: number) => void;
 }): Promise<EngineOutput> {
   const engine = await loadEngine();
-  const input = inputNameFor(opts.file);
-  await engine.writeFile(input, await fetchFile(opts.file));
-
-  const ctx = await probeMedia(engine, input);
+  const input = await ensureInput(engine, opts.file);
+  const ctx = await getCtx(engine, input);
   if (!ctx.durationSec && !ctx.width) {
     throw new Error(
       "Couldn't read this video — it may be corrupt or use a codec the in-browser engine " +
@@ -111,18 +131,35 @@ export async function runJob<P>(opts: {
   };
 }
 
-// Extract a single still frame (for the crop preview) + the source dimensions.
-export async function extractFrame(
-  file: File,
-  atSec = 1,
-): Promise<{ url: string; width: number; height: number }> {
+export function probeFile(file: File): Promise<ProbeResult> {
+  return loadEngine().then((engine) => ensureInput(engine, file).then((input) => getCtx(engine, input)));
+}
+
+// One still frame (for crop preview). Returns an object URL.
+export async function extractFrame(file: File, atSec = 1): Promise<{ url: string }> {
   const engine = await loadEngine();
-  const input = inputNameFor(file);
-  await engine.writeFile(input, await fetchFile(file));
-  const ctx = await probeMedia(engine, input);
+  const input = await ensureInput(engine, file);
+  const ctx = await getCtx(engine, input);
   const t = Math.min(Math.max(0, atSec), Math.max(0, ctx.durationSec / 2));
   await engine.exec(['-ss', String(t), '-i', input, '-frames:v', '1', '-y', 'frame.png']);
   const data = (await engine.readFile('frame.png')) as Uint8Array;
-  const url = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' }));
-  return { url, width: ctx.width, height: ctx.height };
+  return { url: URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' })) };
+}
+
+// A filmstrip of `count` evenly-spaced thumbnails (for the trim scrubber).
+export async function extractFilmstrip(file: File, count: number): Promise<string[]> {
+  const engine = await loadEngine();
+  const input = await ensureInput(engine, file);
+  const ctx = await getCtx(engine, input);
+  const times = thumbTimes(ctx.durationSec, count);
+  const urls: string[] = [];
+  for (let i = 0; i < times.length; i++) {
+    const name = `thumb${i}.png`;
+    await engine.exec([
+      '-ss', String(times[i]), '-i', input, '-frames:v', '1', '-vf', 'scale=160:-1', '-y', name,
+    ]);
+    const data = (await engine.readFile(name)) as Uint8Array;
+    urls.push(URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' })));
+  }
+  return urls;
 }
