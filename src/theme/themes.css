@@ -166,3 +166,26 @@ h1 { font-weight: 600; letter-spacing: -0.02em; }
 }
 button { letter-spacing: -0.01em; }
 button.primary { letter-spacing: 0; }
+
+/* --- compact + control refinement (from screenshot review) --- */
+body { font-size: 14px; }
+h1 { font-size: 22px; }
+button { font-size: 13px; padding: 6px 12px; border-radius: 9px; font-weight: 500; }
+button:not(.primary) { background: transparent; border: 1px solid var(--border); }
+button:not(.primary):hover { background: var(--surface-2); border-color: var(--accent); box-shadow: none; }
+button.primary { padding: 8px 16px; box-shadow: 0 4px 14px var(--glow); }
+.segmented { padding: 3px; border-radius: 11px; }
+.segmented button { padding: 6px 13px; }
+.segmented button:not(.primary) { border-color: transparent; }
+.segmented button.primary { box-shadow: none; }
+input:not([type='checkbox']):not([type='range']), select { height: 32px; font-size: 13px; border-radius: 8px; padding: 0 9px; }
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type='number'] { -moz-appearance: textfield; appearance: textfield; }
+select {
+  appearance: none; -webkit-appearance: none; padding-right: 28px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+.card { padding: 18px; border-radius: 14px; }
+label { font-size: 13px; gap: 8px; }

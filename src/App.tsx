@@ -87,7 +87,7 @@ export default function App() {
 
   return (
     <main
-      style={{ maxWidth: 720, margin: '2rem auto', padding: '0 1rem' }}
+      style={{ maxWidth: 600, margin: '2rem auto', padding: '0 1rem' }}
     >
       <header
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
