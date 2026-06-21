@@ -33,12 +33,23 @@ export function CropTool({
     setFrame(null);
     setErr(null);
     extractFrame(file, 1)
-      .then(({ url, width, height }) => {
-        if (!alive) return;
-        const w = Math.min(DISPLAY_MAX, width);
-        const h = Math.round((w * height) / width);
-        setFrame({ url, srcW: width, srcH: height });
-        setBox({ x: w * 0.1, y: h * 0.1, w: w * 0.8, h: h * 0.8 });
+      .then(({ url }) => {
+        // Use the extracted frame's ACTUAL pixels, not the coded probe size:
+        // ffmpeg auto-rotates on decode, so the frame (and the filtergraph the
+        // crop applies to) is in display orientation. Coded dims would be wrong
+        // for rotated phone videos.
+        const img = new Image();
+        img.onload = () => {
+          if (!alive) return;
+          const sw = img.naturalWidth;
+          const sh = img.naturalHeight;
+          const w = Math.min(DISPLAY_MAX, sw);
+          const h = Math.round((w * sh) / sw);
+          setFrame({ url, srcW: sw, srcH: sh });
+          setBox({ x: w * 0.1, y: h * 0.1, w: w * 0.8, h: h * 0.8 });
+        };
+        img.onerror = () => alive && setErr('Could not load the preview frame.');
+        img.src = url;
       })
       .catch((e) => alive && setErr((e as Error).message));
     return () => {
