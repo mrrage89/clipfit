@@ -110,3 +110,19 @@ export async function runJob<P>(opts: {
     downloadName: out.downloadName,
   };
 }
+
+// Extract a single still frame (for the crop preview) + the source dimensions.
+export async function extractFrame(
+  file: File,
+  atSec = 1,
+): Promise<{ url: string; width: number; height: number }> {
+  const engine = await loadEngine();
+  const input = inputNameFor(file);
+  await engine.writeFile(input, await fetchFile(file));
+  const ctx = await probeMedia(engine, input);
+  const t = Math.min(Math.max(0, atSec), Math.max(0, ctx.durationSec / 2));
+  await engine.exec(['-ss', String(t), '-i', input, '-frames:v', '1', '-y', 'frame.png']);
+  const data = (await engine.readFile('frame.png')) as Uint8Array;
+  const url = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' }));
+  return { url, width: ctx.width, height: ctx.height };
+}
