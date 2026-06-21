@@ -22,11 +22,11 @@ import type { JobPhase, JobResult } from './types';
 const MAX_BYTES = 500 * 1024 * 1024; // single-thread core grows its heap as needed
 
 const TOOLS = [
-  { id: 'fit', label: 'Compress' },
-  { id: 'gif', label: 'GIF' },
-  { id: 'audio', label: 'Extract audio' },
-  { id: 'convert', label: 'Convert' },
-  { id: 'edit', label: 'Edit' },
+  { id: 'fit', label: 'Compress', desc: 'Shrink a video to fit a size limit (Discord, email, WhatsApp).' },
+  { id: 'gif', label: 'GIF', desc: 'Turn a video into an animated GIF.' },
+  { id: 'audio', label: 'Extract audio', desc: 'Pull the audio out as MP3 or WAV.' },
+  { id: 'convert', label: 'Convert', desc: 'Change the format — MP4 or WebM.' },
+  { id: 'edit', label: 'Edit', desc: 'Trim, crop, rotate, flip, change speed / volume / frame rate.' },
 ];
 
 export default function App() {
@@ -103,6 +103,13 @@ export default function App() {
       </p>
 
       <ToolPicker tools={TOOLS} active={toolId} onSelect={selectTool} />
+
+      <p style={{ marginTop: 10, marginBottom: 0 }}>
+        <span className="accent-text" style={{ fontWeight: 500 }}>
+          {TOOLS.find((t) => t.id === toolId)?.label}
+        </span>
+        <span className="muted"> — {TOOLS.find((t) => t.id === toolId)?.desc}</span>
+      </p>
 
       {error && <p style={{ color: 'var(--danger)', marginTop: 12 }}>{error}</p>}
 
