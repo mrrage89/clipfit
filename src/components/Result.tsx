@@ -1,40 +1,43 @@
-import React, { useEffect } from 'react';
 import type { JobResult } from '../types';
 import { humanizeBytes } from '../lib/format';
+import { canShareFiles, shareFile } from '../lib/share';
 
-export interface ResultProps {
-  result: JobResult;
-  onReset: () => void;
-}
-
-export const Result: React.FC<ResultProps> = ({ result, onReset }) => {
+export function Result({ result, onReset }: { result: JobResult; onReset: () => void }) {
   const url = URL.createObjectURL(result.blob);
-  const ok = result.outputBytes <= result.targetBytes;
-
-  useEffect(() => {
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [url]);
+  const canShare = canShareFiles(result.blob, result.downloadName, result.mime);
+  const fits = result.targetBytes === undefined || result.outputBytes <= result.targetBytes;
 
   return (
-    <div style={{ textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <video
-        src={url}
-        controls
-        style={{ maxWidth: '100%', borderRadius: '8px' }}
-      />
-      <p style={{ marginTop: '8px' }}>
-        Output: {humanizeBytes(result.outputBytes)} (target{' '}
-        {humanizeBytes(result.targetBytes)}){' '}
-        {ok ? '✓ fits' : '⚠ over target — try a smaller preset or mute audio'}
+    <div>
+      {result.mime.startsWith('video/') && (
+        <video src={url} controls style={{ maxWidth: '100%', borderRadius: 8 }} />
+      )}
+      {result.mime.startsWith('image/') && (
+        <img src={url} alt="result" style={{ maxWidth: '100%', borderRadius: 8 }} />
+      )}
+      {result.mime.startsWith('audio/') && <audio src={url} controls />}
+
+      <p>
+        Output: {humanizeBytes(result.outputBytes)}
+        {result.targetBytes !== undefined &&
+          ` (target ${humanizeBytes(result.targetBytes)}) ` +
+            (fits ? '✓ fits' : '⚠ over target — try a smaller preset or mute audio')}
       </p>
-      <div style={{ marginTop: '8px' }}>
-        <a href={url} download="clipfit-output.mp4" style={{ textDecoration: 'none' }}>
-          <button style={{ marginRight: '8px' }}>Download</button>
-        </a>
-        <button onClick={onReset}>Start over</button>
-      </div>
+
+      <a href={url} download={result.downloadName}>
+        <button>Download</button>
+      </a>
+      {canShare && (
+        <button
+          onClick={() => shareFile(result.blob, result.downloadName, result.mime)}
+          style={{ marginLeft: 8 }}
+        >
+          Share
+        </button>
+      )}
+      <button onClick={onReset} style={{ marginLeft: 8 }}>
+        Start over
+      </button>
     </div>
   );
-};
+}

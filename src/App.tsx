@@ -3,7 +3,8 @@ import { Dropzone } from './components/Dropzone';
 import { TargetPicker } from './components/TargetPicker';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
-import { loadEngine, runMakeItFit } from './engine/ffmpegEngine';
+import { loadEngine, runJob } from './engine/ffmpegEngine';
+import { fitJob } from './jobs/fit';
 import { humanizeBytes } from './lib/format';
 import type { JobPhase, JobResult, SizeTarget } from './types';
 
@@ -45,13 +46,19 @@ export default function App() {
       setPhase('loading-engine');
       await loadEngine();
       setPhase('processing');
-      const { blob, outputBytes } = await runMakeItFit({
+      const out = await runJob({
         file,
-        targetBytes: target.bytes,
-        mute,
+        job: fitJob,
+        params: { targetBytes: target.bytes, mute },
         onProgress: setRatio,
       });
-      setResult({ blob, outputBytes, targetBytes: target.bytes });
+      setResult({
+        blob: out.blob,
+        downloadName: out.downloadName,
+        mime: out.mime,
+        outputBytes: out.blob.size,
+        targetBytes: target.bytes,
+      });
       setPhase('done');
     } catch (e) {
       setError((e as Error).message);
@@ -76,7 +83,8 @@ export default function App() {
       {file && phase === 'idle' && (
         <>
           <p style={{ fontSize: 14, color: '#555' }}>
-            Selected: {file.name} — {humanizeBytes(file.size)}
+            Selected: {file.name} — {humanizeBytes(file.size)}. Large videos are downscaled to
+            ≤720p automatically.
           </p>
           <TargetPicker onStart={onStart} />
           <button onClick={reset}>Choose a different file</button>

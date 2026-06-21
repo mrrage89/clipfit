@@ -7,6 +7,8 @@ export type JobPhase = 'idle' | 'loading-engine' | 'processing' | 'done' | 'erro
 
 export interface JobResult {
   blob: Blob;
+  downloadName: string;
+  mime: string;
   outputBytes: number;
-  targetBytes: number;
+  targetBytes?: number; // only set for the Fit tool (to show "fits" / "over target")
 }
