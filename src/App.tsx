@@ -3,20 +3,14 @@ import { Dropzone } from './components/Dropzone';
 import { TargetPicker } from './components/TargetPicker';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
-import { probeVideo } from './lib/videoMeta';
-import { computeVideoKbps } from './jobs/bitrate';
-import { buildMakeItFitArgs } from './jobs/makeItFit';
-import { loadEngine, runJob } from './engine/ffmpegEngine';
+import { loadEngine, runMakeItFit } from './engine/ffmpegEngine';
 import { humanizeBytes } from './lib/format';
-import type { JobPhase, JobResult, SizeTarget, VideoMeta } from './types';
+import type { JobPhase, JobResult, SizeTarget } from './types';
 
 const MAX_BYTES = 500 * 1024 * 1024; // guard against the WASM ~2GB memory ceiling
-const INPUT_NAME = 'input.mp4';
-const OUTPUT_NAME = 'output.mp4';
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
-  const [meta, setMeta] = useState<VideoMeta | null>(null);
   const [phase, setPhase] = useState<JobPhase>('idle');
   const [ratio, setRatio] = useState(0);
   const [result, setResult] = useState<JobResult | null>(null);
@@ -24,14 +18,13 @@ export default function App() {
 
   function reset() {
     setFile(null);
-    setMeta(null);
     setPhase('idle');
     setRatio(0);
     setResult(null);
     setError(null);
   }
 
-  async function onFile(f: File) {
+  function onFile(f: File) {
     setError(null);
     if (f.size > MAX_BYTES) {
       setError(
@@ -40,49 +33,28 @@ export default function App() {
       );
       return;
     }
-    try {
-      const m = await probeVideo(f);
-      setFile(f);
-      setMeta(m);
-    } catch (e) {
-      setError((e as Error).message);
-    }
+    setFile(f);
+    setPhase('idle');
   }
 
   async function onStart(target: SizeTarget, mute: boolean) {
-    if (!file || !meta) return;
+    if (!file) return;
     setError(null);
     setRatio(0);
     try {
-      const audioKbps = mute ? 0 : 128;
-      const videoKbps = computeVideoKbps({
-        targetBytes: target.bytes,
-        durationSec: meta.durationSec,
-        audioKbps,
-      });
-      const passes = buildMakeItFitArgs({
-        inputName: INPUT_NAME,
-        outputName: OUTPUT_NAME,
-        videoKbps,
-        audioKbps,
-      });
-
       setPhase('loading-engine');
       await loadEngine();
       setPhase('processing');
-
-      const blob = await runJob({
+      const { blob, outputBytes } = await runMakeItFit({
         file,
-        passes,
-        inputName: INPUT_NAME,
-        outputName: OUTPUT_NAME,
+        targetBytes: target.bytes,
+        mute,
         onProgress: setRatio,
       });
-
-      setResult({ blob, outputBytes: blob.size, targetBytes: target.bytes });
+      setResult({ blob, outputBytes, targetBytes: target.bytes });
       setPhase('done');
     } catch (e) {
-      setError(`Processing failed: ${(e as Error).message}`);
+      setError((e as Error).message);
       setPhase('error');
     }
   }
@@ -101,10 +73,10 @@ export default function App() {
 
       {!file && <Dropzone onFile={onFile} />}
 
-      {file && meta && phase === 'idle' && (
+      {file && phase === 'idle' && (
         <>
           <p style={{ fontSize: 14, color: '#555' }}>
-            Selected: {file.name} — {humanizeBytes(meta.sizeBytes)}, {Math.round(meta.durationSec)}s
+            Selected: {file.name} — {humanizeBytes(file.size)}
           </p>
           <TargetPicker onStart={onStart} />
           <button onClick={reset}>Choose a different file</button>
