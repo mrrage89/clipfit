@@ -87,7 +87,7 @@ export default function App() {
 
   return (
     <main
-      style={{ maxWidth: 640, margin: '2rem auto', fontFamily: 'system-ui', padding: '0 1rem' }}
+      style={{ maxWidth: 720, margin: '2rem auto', padding: '0 1rem' }}
     >
       <header
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
@@ -113,7 +113,7 @@ export default function App() {
 
       {error && <p style={{ color: 'var(--danger)', marginTop: 12 }}>{error}</p>}
 
-      <div style={{ marginTop: 16 }}>
+      <div className="card" style={{ marginTop: 16 }}>
         {!file && <Dropzone onFile={onFile} />}
 
         {file && phase === 'idle' && (

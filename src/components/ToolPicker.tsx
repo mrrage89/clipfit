@@ -13,14 +13,9 @@ export function ToolPicker({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+    <div className="segmented">
       {tools.map((t) => (
-        <button
-          key={t.id}
-          onClick={() => onSelect(t.id)}
-          className={t.id === active ? 'primary' : ''}
-          style={{ borderRadius: 20 }}
-        >
+        <button key={t.id} onClick={() => onSelect(t.id)} className={t.id === active ? 'primary' : ''}>
           {t.label}
         </button>
       ))}
