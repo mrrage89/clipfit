@@ -83,3 +83,17 @@ asking, recording each here for later review. Newest at the bottom.
     `thumbTimes` for timestamps).
   - Phase 4 remainder: cache the written input so extractFrame/filmstrip/export
     don't each re-`writeFile` the whole file; then benchmark before/after.
+
+### v3 COMPLETE (2026-06-21)
+- Phase 3 (unified Studio editor) ✅ and Phase 4 (optimization) ✅ done. All v3
+  phases complete; 42 tests green; pushed to feat/v2-toolkit.
+- **Optimizations shipped:** (1) single-pass `studioJob` applies trim+crop+edit in
+  ONE encode (vs chaining separate tools); (2) input/probe cache — the file is
+  written + probed once and reused by preview frame, filmstrip, and export.
+- **Benchmark (native ffmpeg, 10s 720p, trim+crop+rotate):** single pass 0.19s vs
+  three-pass chain 0.50s = **2.7× fewer encodes**, plus no generational quality
+  loss. Ratio holds in the wasm core (both scale up ~5–20×).
+- Standalone trim/crop/edit jobs + tests kept (tree-shaken out of the app bundle);
+  TrimPanel/CropTool/EditPanel components deleted (replaced by StudioEditor).
+- Next (needs Jay): in-browser verify the editor; merge v1 PR #1 + v2 PR #2;
+  deploy to Cloudflare Pages (starts the validation clock); monetization gated.
