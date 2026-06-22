@@ -1,29 +1,61 @@
 import { useEffect, useMemo, useState } from 'react';
+import { extractFrame } from '../engine/ffmpegEngine';
 
-// Playable preview of the selected source file, before any processing. Uses a
-// native <video> (no engine load, file stays local). Some formats the browser
-// can't decode (e.g. certain HEVC / mkv) — fall back to a quiet note in that case.
+// Preview of the selected source before processing. Tries a native <video>
+// (instant, playable, local). If the browser can't decode the format — e.g.
+// Linux Chromium has no H.264 — fall back to an ffmpeg-extracted poster frame,
+// which works for any codec.
 export function VideoPreview({ file }: { file: File }) {
   const url = useMemo(() => URL.createObjectURL(file), [file]);
-  const [failed, setFailed] = useState(false);
+  const [poster, setPoster] = useState<string | null>(null);
+  const [status, setStatus] = useState<'video' | 'loading' | 'poster' | 'none'>('video');
 
+  useEffect(() => {
+    setStatus('video');
+    setPoster(null);
+  }, [file]);
   useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  useEffect(() => () => {
+    if (poster) URL.revokeObjectURL(poster);
+  }, [poster]);
 
-  if (failed) {
-    return (
-      <p className="muted" style={{ fontSize: 13 }}>
-        Preview isn't available for this format in-browser — it'll still process fine.
-      </p>
-    );
+  async function fallback() {
+    setStatus('loading');
+    try {
+      const { url: p } = await extractFrame(file, 1);
+      setPoster(p);
+      setStatus('poster');
+    } catch {
+      setStatus('none');
+    }
   }
 
+  const mediaStyle = {
+    maxWidth: '100%',
+    maxHeight: 360,
+    borderRadius: 'var(--radius)',
+    display: 'block',
+  } as const;
+
+  if (status === 'video') {
+    return <video src={url} controls preload="metadata" onError={fallback} style={mediaStyle} />;
+  }
+  if (status === 'loading') {
+    return <p className="muted" style={{ fontSize: 13 }}>Loading preview…</p>;
+  }
+  if (status === 'poster' && poster) {
+    return (
+      <div>
+        <img src={poster} alt="preview frame" style={mediaStyle} />
+        <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+          Preview frame — your browser can't play this format inline, but it'll still process fine.
+        </p>
+      </div>
+    );
+  }
   return (
-    <video
-      src={url}
-      controls
-      preload="metadata"
-      onError={() => setFailed(true)}
-      style={{ maxWidth: '100%', maxHeight: 360, borderRadius: 'var(--radius)', display: 'block' }}
-    />
+    <p className="muted" style={{ fontSize: 13 }}>
+      Preview unavailable for this format — it'll still process fine.
+    </p>
   );
 }
