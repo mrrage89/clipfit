@@ -4,22 +4,36 @@ import { fitJob } from '../src/jobs/fit';
 const ctx = { durationSec: 60, width: 1920, height: 1080, hasAudio: true };
 
 describe('fitJob.buildPasses', () => {
-  it('computes the video bitrate from ctx duration and keeps audio', () => {
-    const args = fitJob.buildPasses('in.mp4', 'out.mp4', ctx, {
+  it('balanced: single pass, computed bitrate, keeps audio', () => {
+    const passes = fitJob.buildPasses('in.mp4', 'out.mp4', ctx, {
       targetBytes: 25 * 1024 * 1024,
       mute: false,
-    })[0];
-    // 25MB, 60s, 128k audio, 0.95 margin -> 3192 kbps (see bitrate.test.ts)
-    expect(args[args.indexOf('-b:v') + 1]).toBe('3192k');
-    expect(args).toContain('-c:a');
+      quality: 'balanced',
+    });
+    expect(passes).toHaveLength(1);
+    const a = passes[0];
+    expect(a[a.indexOf('-b:v') + 1]).toBe('3192k');
+    expect(a).toContain('-c:a');
   });
 
   it('strips audio when muted', () => {
-    const args = fitJob.buildPasses('in.mp4', 'out.mp4', ctx, {
+    const a = fitJob.buildPasses('in.mp4', 'out.mp4', ctx, {
       targetBytes: 25 * 1024 * 1024,
       mute: true,
+      quality: 'balanced',
     })[0];
-    expect(args).toContain('-an');
-    expect(args).not.toContain('-c:a');
+    expect(a).toContain('-an');
+    expect(a).not.toContain('-c:a');
+  });
+
+  it('best: two passes (analyze + encode)', () => {
+    const passes = fitJob.buildPasses('in.mp4', 'out.mp4', ctx, {
+      targetBytes: 25 * 1024 * 1024,
+      mute: false,
+      quality: 'best',
+    });
+    expect(passes).toHaveLength(2);
+    expect(passes[0].join(' ')).toContain('-pass 1');
+    expect(passes[1].join(' ')).toContain('-pass 2');
   });
 });

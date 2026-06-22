@@ -123,7 +123,9 @@ export default function App() {
             </p>
             {toolId === 'fit' && (
               <TargetPicker
-                onStart={(t, mute) => run(fitJob, { targetBytes: t.bytes, mute }, t.bytes)}
+                onStart={(t, mute, quality) =>
+                  run(fitJob, { targetBytes: t.bytes, mute, quality }, t.bytes)
+                }
               />
             )}
             {toolId === 'gif' && <GifPanel onRun={(p) => run(gifJob, p)} />}

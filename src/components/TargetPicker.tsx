@@ -14,18 +14,19 @@ export const PRESETS: SizeTarget[] = [
 export function TargetPicker({
   onStart,
 }: {
-  onStart: (target: SizeTarget, mute: boolean) => void;
+  onStart: (target: SizeTarget, mute: boolean, quality: 'balanced' | 'best') => void;
 }) {
   const [mute, setMute] = useState(false);
   const [idx, setIdx] = useState(1); // Discord (25 MB)
   const [customMb, setCustomMb] = useState(25);
+  const [quality, setQuality] = useState<'balanced' | 'best'>('balanced');
   const isCustom = idx === PRESETS.length;
 
   function go() {
     const target = isCustom
       ? { label: `Custom (${customMb} MB)`, bytes: customMb * MB }
       : PRESETS[idx];
-    onStart(target, mute);
+    onStart(target, mute, quality);
   }
 
   return (
@@ -56,6 +57,13 @@ export function TargetPicker({
           />
         </label>
       )}
+      <label>
+        Quality
+        <select value={quality} onChange={(e) => setQuality(e.target.value as 'balanced' | 'best')}>
+          <option value="balanced">Balanced (faster)</option>
+          <option value="best">Best (slower, 2-pass)</option>
+        </select>
+      </label>
       <button className="primary" onClick={go}>
         Compress
       </button>
