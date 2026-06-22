@@ -130,7 +130,7 @@ export function StudioEditor({
   if (!frame) return <p>Preparing editor… (loading engine on first use)</p>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div>
         <div style={{ marginBottom: 8 }}>
           <Toggle on={cropOn} onChange={setCropOn}>Crop</Toggle>
@@ -158,8 +158,8 @@ export function StudioEditor({
 
       {duration > 0 && (
         <div>
-          <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}>
-            Trim {strip.length === 0 && '(loading thumbnails…)'}
+          <div className="section-label" style={{ marginBottom: 8 }}>
+            Trim{strip.length === 0 ? ' · loading…' : ''}
           </div>
           <TrimScrubber
             duration={duration}

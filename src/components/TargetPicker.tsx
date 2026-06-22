@@ -17,36 +17,48 @@ export function TargetPicker({
   onStart: (target: SizeTarget, mute: boolean) => void;
 }) {
   const [mute, setMute] = useState(false);
+  const [idx, setIdx] = useState(1); // Discord (25 MB)
+  const [customMb, setCustomMb] = useState(25);
+  const isCustom = idx === PRESETS.length;
+
+  function go() {
+    const target = isCustom
+      ? { label: `Custom (${customMb} MB)`, bytes: customMb * MB }
+      : PRESETS[idx];
+    onStart(target, mute);
+  }
+
   return (
-    <div>
-      <div style={{ margin: '4px 0 12px' }}>
-        <Toggle on={mute} onChange={setMute}>
-          Mute (remove audio)
-        </Toggle>
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {PRESETS.map((p) => (
-          <button key={p.label} onClick={() => onStart(p, mute)}>
-            {p.label}
-          </button>
-        ))}
-      </div>
-      <div style={{ marginTop: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+      <Toggle on={mute} onChange={setMute}>
+        Mute (remove audio)
+      </Toggle>
+      <label>
+        Fit to
+        <select value={idx} onChange={(e) => setIdx(Number(e.target.value))}>
+          {PRESETS.map((p, i) => (
+            <option key={p.label} value={i}>
+              {p.label}
+            </option>
+          ))}
+          <option value={PRESETS.length}>Custom size…</option>
+        </select>
+      </label>
+      {isCustom && (
         <label>
-          Custom MB:{' '}
+          Size (MB)
           <input
             type="number"
             min={1}
+            value={customMb}
             style={{ width: 80 }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                const mb = Number((e.target as HTMLInputElement).value);
-                if (mb > 0) onStart({ label: `Custom (${mb} MB)`, bytes: mb * MB }, mute);
-              }
-            }}
+            onChange={(e) => setCustomMb(Number(e.target.value))}
           />
         </label>
-      </div>
+      )}
+      <button className="primary" onClick={go}>
+        Compress
+      </button>
     </div>
   );
 }
