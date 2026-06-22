@@ -210,3 +210,8 @@ select { background-image: none !important; padding-right: 10px; }
   pointer-events: none; color: var(--text-dim);
 }
 input[type='range'] { accent-color: var(--accent); vertical-align: middle; height: auto; }
+
+/* --- form fields: label above, full-width control (aligned + flush) --- */
+.field { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.field-label { font-size: 12px; font-weight: 500; color: var(--text-dim); }
+.field .select-wrap, .field > input { width: 100%; }
