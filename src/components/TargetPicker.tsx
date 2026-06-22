@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { SizeTarget } from '../types';
 import { Toggle } from './Toggle';
+import { Select } from './Select';
 
 const MB = 1024 * 1024;
 export const PRESETS: SizeTarget[] = [
@@ -36,14 +37,14 @@ export function TargetPicker({
       </Toggle>
       <label>
         Fit to
-        <select value={idx} onChange={(e) => setIdx(Number(e.target.value))}>
+        <Select value={idx} onChange={(v) => setIdx(Number(v))}>
           {PRESETS.map((p, i) => (
             <option key={p.label} value={i}>
               {p.label}
             </option>
           ))}
           <option value={PRESETS.length}>Custom size…</option>
-        </select>
+        </Select>
       </label>
       {isCustom && (
         <label>
@@ -59,10 +60,10 @@ export function TargetPicker({
       )}
       <label>
         Quality
-        <select value={quality} onChange={(e) => setQuality(e.target.value as 'balanced' | 'best')}>
+        <Select value={quality} onChange={(v) => setQuality(v as 'balanced' | 'best')}>
           <option value="balanced">Balanced (faster)</option>
           <option value="best">Best (slower, 2-pass)</option>
-        </select>
+        </Select>
       </label>
       <button className="primary" onClick={go}>
         Compress

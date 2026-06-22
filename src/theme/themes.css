@@ -200,3 +200,13 @@ button.toggle-on:hover { background: var(--accent); filter: brightness(1.08); bo
   border: 1px solid var(--border); border-radius: 12px;
 }
 .controls label { gap: 6px; }
+
+/* --- reliable custom select chevron (wrapper-positioned SVG) --- */
+select { background-image: none !important; padding-right: 10px; }
+.select-wrap { position: relative; display: inline-flex; vertical-align: middle; }
+.select-wrap > select { width: 100%; padding-right: 30px; }
+.select-chev {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; color: var(--text-dim);
+}
+input[type='range'] { accent-color: var(--accent); vertical-align: middle; height: auto; }
