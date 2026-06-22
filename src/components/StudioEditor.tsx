@@ -201,7 +201,7 @@ export function StudioEditor({
           </label>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignSelf: 'center', alignItems: 'center', width: 320, justifyContent: 'space-between' }}>
           <button
             type="button"
             className={flipH ? 'toggle-on' : ''}
