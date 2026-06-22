@@ -88,7 +88,7 @@ export default function App() {
 
   return (
     <main
-      style={{ maxWidth: 600, margin: '2rem auto', padding: '0 1rem' }}
+      style={{ maxWidth: 520, margin: '2rem auto', padding: '0 1rem' }}
     >
       <header
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
@@ -138,7 +138,7 @@ export default function App() {
             {toolId === 'audio' && <AudioPanel onRun={(p) => run(audioJob, p)} />}
             {toolId === 'convert' && <ConvertPanel onRun={(p) => run(convertJob, p)} />}
             {toolId === 'edit' && <StudioEditor file={file} onRun={(p) => run(studioJob, p)} />}
-            <button onClick={() => setFile(null)} style={{ marginTop: 12 }}>
+            <button onClick={() => setFile(null)} style={{ marginTop: 14, width: '100%' }}>
               Choose a different file
             </button>
           </>

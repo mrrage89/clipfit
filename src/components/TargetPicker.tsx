@@ -18,7 +18,7 @@ export function TargetPicker({
   onStart: (target: SizeTarget, mute: boolean, quality: 'balanced' | 'best') => void;
 }) {
   const [mute, setMute] = useState(false);
-  const [idx, setIdx] = useState(1); // Discord (25 MB)
+  const [idx, setIdx] = useState(1);
   const [customMb, setCustomMb] = useState(25);
   const [quality, setQuality] = useState<'balanced' | 'best'>('balanced');
   const isCustom = idx === PRESETS.length;
@@ -31,12 +31,12 @@ export function TargetPicker({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
       <Toggle on={mute} onChange={setMute}>
         Mute (remove audio)
       </Toggle>
-      <label>
-        Fit to
+      <div className="field">
+        <span className="field-label">Fit to</span>
         <Select value={idx} onChange={(v) => setIdx(Number(v))}>
           {PRESETS.map((p, i) => (
             <option key={p.label} value={i}>
@@ -45,27 +45,26 @@ export function TargetPicker({
           ))}
           <option value={PRESETS.length}>Custom size…</option>
         </Select>
-      </label>
+      </div>
       {isCustom && (
-        <label>
-          Size (MB)
+        <div className="field">
+          <span className="field-label">Size (MB)</span>
           <input
             type="number"
             min={1}
             value={customMb}
-            style={{ width: 80 }}
             onChange={(e) => setCustomMb(Number(e.target.value))}
           />
-        </label>
+        </div>
       )}
-      <label>
-        Quality
+      <div className="field">
+        <span className="field-label">Quality</span>
         <Select value={quality} onChange={(v) => setQuality(v as 'balanced' | 'best')}>
           <option value="balanced">Balanced (faster)</option>
           <option value="best">Best (slower, 2-pass)</option>
         </Select>
-      </label>
-      <button className="primary" onClick={go}>
+      </div>
+      <button className="primary" style={{ width: '100%' }} onClick={go}>
         Compress
       </button>
     </div>
