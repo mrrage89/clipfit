@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Select } from './Select';
 
 export function ConvertPanel({ onRun }: { onRun: (params: { target: 'mp4' | 'webm' }) => void }) {
   const [target, setTarget] = useState<'mp4' | 'webm'>('mp4');
@@ -6,10 +7,10 @@ export function ConvertPanel({ onRun }: { onRun: (params: { target: 'mp4' | 'web
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
       <label>
         Target format
-        <select value={target} onChange={(e) => setTarget(e.target.value as 'mp4' | 'webm')}>
+        <Select value={target} onChange={(v) => setTarget(v as 'mp4' | 'webm')}>
           <option value="mp4">MP4</option>
           <option value="webm">WebM</option>
-        </select>
+        </Select>
       </label>
       <button className="primary" onClick={() => onRun({ target })}>
         Convert

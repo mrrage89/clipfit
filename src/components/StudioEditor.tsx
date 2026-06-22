@@ -3,6 +3,7 @@ import { extractFrame, extractFilmstrip, probeFile } from '../engine/ffmpegEngin
 import { mapCropToSource } from '../lib/cropMath';
 import { TrimScrubber } from './TrimScrubber';
 import { Toggle } from './Toggle';
+import { Select } from './Select';
 import type { StudioParams } from '../jobs/studio';
 import type { EditParams } from '../jobs/edit';
 
@@ -177,26 +178,70 @@ export function StudioEditor({
       <div className="controls">
         <label>
           Rotate
-          <select value={rotate} onChange={(e) => setRotate(Number(e.target.value) as 0 | 90 | 180 | 270)}>
+          <Select value={rotate} onChange={(v) => setRotate(Number(v) as 0 | 90 | 180 | 270)}>
             <option value={0}>0°</option>
             <option value={90}>90°</option>
             <option value={180}>180°</option>
             <option value={270}>270°</option>
-          </select>
+          </Select>
         </label>
         <label>
           Speed
-          <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>
+          <Select value={speed} onChange={(v) => setSpeed(Number(v))}>
             <option value={0.5}>0.5×</option>
             <option value={1}>1×</option>
             <option value={1.5}>1.5×</option>
             <option value={2}>2×</option>
-          </select>
+          </Select>
         </label>
-        <label>FPS <input type="number" value={fps} min={0} style={{ width: 56 }} onChange={(e) => setFps(Number(e.target.value))} /></label>
-        <label>Vol dB <input type="number" value={volumeDb} style={{ width: 56 }} onChange={(e) => setVolumeDb(Number(e.target.value))} /></label>
-        <Toggle on={flipH} onChange={setFlipH}>Flip H</Toggle>
-        <Toggle on={flipV} onChange={setFlipV}>Flip V</Toggle>
+        <label>
+          FPS
+          <input type="number" value={fps} min={0} style={{ width: 56 }} onChange={(e) => setFps(Number(e.target.value))} />
+        </label>
+        <label>
+          Vol
+          <input
+            type="range"
+            min={-20}
+            max={20}
+            step={1}
+            value={volumeDb}
+            style={{ width: 110 }}
+            onChange={(e) => setVolumeDb(Number(e.target.value))}
+          />
+          <span className="muted" style={{ minWidth: 44, fontSize: 12 }}>
+            {volumeDb > 0 ? '+' : ''}
+            {volumeDb} dB
+          </span>
+        </label>
+        <button
+          type="button"
+          className={flipH ? 'toggle-on' : ''}
+          onClick={() => setFlipH(!flipH)}
+          aria-label="Flip horizontal"
+          title="Flip horizontal"
+          style={{ padding: '6px 9px', lineHeight: 0 }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
+            <path d="M9 7 L9 17 L4.5 12 Z" fill="currentColor" />
+            <path d="M15 7 L15 17 L19.5 12 Z" fill="currentColor" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className={flipV ? 'toggle-on' : ''}
+          onClick={() => setFlipV(!flipV)}
+          aria-label="Flip vertical"
+          title="Flip vertical"
+          style={{ padding: '6px 9px', lineHeight: 0 }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
+            <path d="M7 9 L17 9 L12 4.5 Z" fill="currentColor" />
+            <path d="M7 15 L17 15 L12 19.5 Z" fill="currentColor" />
+          </svg>
+        </button>
       </div>
 
       <button className="primary" onClick={doExport} style={{ alignSelf: 'flex-start' }}>
