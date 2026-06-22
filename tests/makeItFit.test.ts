@@ -35,14 +35,30 @@ describe('buildMakeItFitArgs', () => {
     expect(passes[0]).not.toContain('-c:a');
   });
 
-  it('honors a custom maxDimension', () => {
+  it('honors a custom maxDimension and preset', () => {
     const passes = buildMakeItFitArgs({
       inputName: 'in.mp4',
       outputName: 'out.mp4',
       videoKbps: 1000,
       audioKbps: 128,
       maxDimension: 720,
+      preset: 'medium',
     });
-    expect(passes[0]).toContain("scale='min(720,iw)':'min(720,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2");
+    expect(passes[0].join(' ')).toContain("scale='min(720,iw)'");
+    expect(passes[0].join(' ')).toContain('-preset medium');
+  });
+
+  it('two-pass returns an analyze pass and an encode pass', () => {
+    const passes = buildMakeItFitArgs({
+      inputName: 'in.mp4',
+      outputName: 'out.mp4',
+      videoKbps: 3000,
+      audioKbps: 128,
+      twoPass: true,
+    });
+    expect(passes).toHaveLength(2);
+    expect(passes[0].join(' ')).toContain('-pass 1');
+    expect(passes[0]).toContain('-an');
+    expect(passes[1].join(' ')).toContain('-pass 2');
   });
 });

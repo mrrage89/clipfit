@@ -24,3 +24,13 @@ export function isTargetAchievable(input: BitrateInput): boolean {
   const audioBits = input.audioKbps * 1000 * input.durationSec;
   return (totalBits - audioBits) / input.durationSec / 1000 >= minVideoKbps;
 }
+
+// Pick a max output dimension the given video bitrate can support at decent
+// quality. Combined with the scale filter's min(dim, source), this never
+// upscales — it just stops over-downscaling when the budget allows more pixels.
+export function pickMaxDimension(videoKbps: number): number {
+  if (videoKbps >= 2500) return 1920;
+  if (videoKbps >= 1200) return 1280;
+  if (videoKbps >= 600) return 854;
+  return 640;
+}
