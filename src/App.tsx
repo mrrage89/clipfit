@@ -7,6 +7,7 @@ import { ConvertPanel } from './components/ConvertPanel';
 import { StudioEditor } from './components/StudioEditor';
 import { ToolPicker } from './components/ToolPicker';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
+import { VideoPreview } from './components/VideoPreview';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
 import { loadEngine, runJob } from './engine/ffmpegEngine';
@@ -121,6 +122,11 @@ export default function App() {
             <p className="muted" style={{ fontSize: 14 }}>
               {file.name} — {humanizeBytes(file.size)}
             </p>
+            {toolId !== 'edit' && (
+              <div style={{ marginBottom: 14 }}>
+                <VideoPreview file={file} />
+              </div>
+            )}
             {toolId === 'fit' && (
               <TargetPicker
                 onStart={(t, mute, quality) =>
