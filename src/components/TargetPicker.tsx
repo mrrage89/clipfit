@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { SizeTarget } from '../types';
+import { Toggle } from './Toggle';
 
 const MB = 1024 * 1024;
 export const PRESETS: SizeTarget[] = [
@@ -18,10 +19,11 @@ export function TargetPicker({
   const [mute, setMute] = useState(false);
   return (
     <div>
-      <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, margin: '8px 0' }}>
-        <input type="checkbox" checked={mute} onChange={(e) => setMute(e.target.checked)} />
-        Mute (remove audio)
-      </label>
+      <div style={{ margin: '4px 0 12px' }}>
+        <Toggle on={mute} onChange={setMute}>
+          Mute (remove audio)
+        </Toggle>
+      </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {PRESETS.map((p) => (
           <button key={p.label} onClick={() => onStart(p, mute)}>

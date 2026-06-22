@@ -100,11 +100,11 @@ export function TrimScrubber({
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
         <div style={{ textAlign: 'center' }}>
-          {inThumb && <img src={inThumb} alt="in point" style={{ width: 120, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
+          {inThumb && <img src={inThumb} alt="in point" style={{ height: 64, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
           <div className="muted" style={{ fontSize: 12 }}>In {fmt(valueIn)}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          {outThumb && <img src={outThumb} alt="out point" style={{ width: 120, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
+          {outThumb && <img src={outThumb} alt="out point" style={{ height: 64, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
           <div className="muted" style={{ fontSize: 12 }}>Out {fmt(valueOut)}</div>
         </div>
       </div>

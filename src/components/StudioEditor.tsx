@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { extractFrame, extractFilmstrip, probeFile } from '../engine/ffmpegEngine';
 import { mapCropToSource } from '../lib/cropMath';
 import { TrimScrubber } from './TrimScrubber';
+import { Toggle } from './Toggle';
 import type { StudioParams } from '../jobs/studio';
 import type { EditParams } from '../jobs/edit';
 
@@ -131,9 +132,9 @@ export function StudioEditor({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <input type="checkbox" checked={cropOn} onChange={(e) => setCropOn(e.target.checked)} /> Crop
-        </label>
+        <div style={{ marginBottom: 8 }}>
+          <Toggle on={cropOn} onChange={setCropOn}>Crop</Toggle>
+        </div>
         <div
           style={{ position: 'relative', width: dispW, height: dispH, touchAction: 'none', userSelect: 'none' }}
           onPointerMove={onPointerMove}
@@ -173,9 +174,9 @@ export function StudioEditor({
         </div>
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
+      <div className="controls">
         <label>
-          Rotate{' '}
+          Rotate
           <select value={rotate} onChange={(e) => setRotate(Number(e.target.value) as 0 | 90 | 180 | 270)}>
             <option value={0}>0°</option>
             <option value={90}>90°</option>
@@ -183,10 +184,8 @@ export function StudioEditor({
             <option value={270}>270°</option>
           </select>
         </label>
-        <label><input type="checkbox" checked={flipH} onChange={(e) => setFlipH(e.target.checked)} /> Flip H</label>
-        <label><input type="checkbox" checked={flipV} onChange={(e) => setFlipV(e.target.checked)} /> Flip V</label>
         <label>
-          Speed{' '}
+          Speed
           <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>
             <option value={0.5}>0.5×</option>
             <option value={1}>1×</option>
@@ -194,8 +193,10 @@ export function StudioEditor({
             <option value={2}>2×</option>
           </select>
         </label>
-        <label>FPS <input type="number" value={fps} min={0} style={{ width: 60 }} onChange={(e) => setFps(Number(e.target.value))} /></label>
-        <label>Vol dB <input type="number" value={volumeDb} style={{ width: 60 }} onChange={(e) => setVolumeDb(Number(e.target.value))} /></label>
+        <label>FPS <input type="number" value={fps} min={0} style={{ width: 56 }} onChange={(e) => setFps(Number(e.target.value))} /></label>
+        <label>Vol dB <input type="number" value={volumeDb} style={{ width: 56 }} onChange={(e) => setVolumeDb(Number(e.target.value))} /></label>
+        <Toggle on={flipH} onChange={setFlipH}>Flip H</Toggle>
+        <Toggle on={flipV} onChange={setFlipV}>Flip V</Toggle>
       </div>
 
       <button className="primary" onClick={doExport} style={{ alignSelf: 'flex-start' }}>
