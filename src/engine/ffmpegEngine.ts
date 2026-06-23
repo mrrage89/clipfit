@@ -10,10 +10,11 @@ let enginePromise: Promise<FFmpeg> | null = null;
 
 async function createEngine(): Promise<FFmpeg> {
   // Single-thread core: growable heap, reliable on large real-world videos.
-  // Self-hosted (copied to public/ffmpeg/<version>/ at build time) so there's no
-  // runtime dependency on a third-party CDN. import.meta.env.BASE_URL keeps it
-  // correct if the app is ever served from a subpath.
-  const baseURL = `${import.meta.env.BASE_URL}ffmpeg/${CORE_VERSION}`;
+  // Loaded from the jsdelivr CDN: Cloudflare's 25 MiB static-asset cap can't hold
+  // the ~31 MB core wasm, so it can't be self-hosted on Pages/Workers. jsdelivr is
+  // a highly reliable multi-CDN with permissive CORS. (Cloudflare R2 is a future
+  // option to drop the third-party dependency.)
+  const baseURL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
   const ffmpeg = new FFmpeg();
   await ffmpeg.load({
     coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),

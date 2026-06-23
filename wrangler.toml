@@ -1,0 +1,10 @@
+# Cloudflare Workers static-assets deploy (the dashboard's "Connect to Git" flow
+# now creates a Worker, not a Pages project). `npx wrangler deploy` uploads the
+# built dist/ as static assets. Every file is well under the 25 MiB asset cap
+# because the ffmpeg core wasm is loaded from a CDN at runtime, not bundled.
+name = "clipfit"
+compatibility_date = "2025-06-01"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
