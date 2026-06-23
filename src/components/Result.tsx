@@ -1,6 +1,7 @@
 import type { JobResult } from '../types';
 import { humanizeBytes } from '../lib/format';
 import { canShareFiles, shareFile } from '../lib/share';
+import { DiscordPost } from './DiscordPost';
 
 export function Result({ result, onReset }: { result: JobResult; onReset: () => void }) {
   const url = URL.createObjectURL(result.blob);
@@ -38,6 +39,8 @@ export function Result({ result, onReset }: { result: JobResult; onReset: () => 
       <button onClick={onReset} style={{ marginLeft: 8 }}>
         Start over
       </button>
+
+      <DiscordPost result={result} />
     </div>
   );
 }
