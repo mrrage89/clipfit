@@ -7,21 +7,27 @@ function fmt(t: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+type Drag = { mode: 'in' | 'out' | 'move'; startX: number; startIn: number; startOut: number };
+
 export function TrimScrubber({
   duration,
   strip,
   valueIn,
   valueOut,
   onChange,
+  inLabel = 'In',
+  outLabel = 'Out',
 }: {
   duration: number;
   strip: string[];
   valueIn: number;
   valueOut: number;
   onChange: (inSec: number, outSec: number) => void;
+  inLabel?: string;
+  outLabel?: string;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<'in' | 'out' | null>(null);
+  const drag = useRef<Drag | null>(null);
 
   function timeAt(clientX: number): number {
     const el = trackRef.current;
@@ -30,11 +36,25 @@ export function TrimScrubber({
     const pct = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
     return pct * duration;
   }
+  function spanFor(dxPx: number): number {
+    const el = trackRef.current;
+    if (!el) return 0;
+    return (dxPx / el.getBoundingClientRect().width) * duration;
+  }
   function onPointerMove(e: React.PointerEvent) {
-    if (!drag.current) return;
-    const t = timeAt(e.clientX);
-    if (drag.current === 'in') onChange(Math.min(t, valueOut - 0.1), valueOut);
-    else onChange(valueIn, Math.max(t, valueIn + 0.1));
+    const d = drag.current;
+    if (!d) return;
+    if (d.mode === 'in') {
+      onChange(Math.min(timeAt(e.clientX), valueOut - 0.1), valueOut);
+    } else if (d.mode === 'out') {
+      onChange(valueIn, Math.max(timeAt(e.clientX), valueIn + 0.1));
+    } else {
+      // slide the whole selection, keeping its length
+      const len = d.startOut - d.startIn;
+      let ni = d.startIn + spanFor(e.clientX - d.startX);
+      ni = Math.max(0, Math.min(ni, duration - len));
+      onChange(ni, ni + len);
+    }
   }
   function end() {
     drag.current = null;
@@ -44,23 +64,26 @@ export function TrimScrubber({
   const pctOut = duration ? (valueOut / duration) * 100 : 100;
   const inThumb = strip[nearestThumb(valueIn, duration, strip.length)];
   const outThumb = strip[nearestThumb(valueOut, duration, strip.length)];
+
   const handle = (left: number, which: 'in' | 'out') => (
     <div
       onPointerDown={(e) => {
         e.preventDefault();
-        drag.current = which;
+        e.stopPropagation();
+        drag.current = { mode: which, startX: e.clientX, startIn: valueIn, startOut: valueOut };
       }}
       style={{
         position: 'absolute',
         top: 0,
         bottom: 0,
         left: `${left}%`,
-        width: 12,
-        transform: 'translateX(-6px)',
+        width: 14,
+        transform: 'translateX(-7px)',
         background: 'var(--accent)',
         cursor: 'ew-resize',
         borderRadius: 4,
         boxShadow: '0 0 8px var(--glow)',
+        zIndex: 2,
       }}
     />
   );
@@ -94,18 +117,35 @@ export function TrimScrubber({
         ))}
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${pctIn}%`, background: 'rgba(0,0,0,0.55)' }} />
         <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: `${100 - pctOut}%`, background: 'rgba(0,0,0,0.55)' }} />
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: `${pctIn}%`, width: `${pctOut - pctIn}%`, border: '2px solid var(--accent)', boxSizing: 'border-box' }} />
+        {/* selection body — drag to slide the whole slice */}
+        <div
+          onPointerDown={(e) => {
+            e.preventDefault();
+            drag.current = { mode: 'move', startX: e.clientX, startIn: valueIn, startOut: valueOut };
+          }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: `${pctIn}%`,
+            width: `${pctOut - pctIn}%`,
+            border: '2px solid var(--accent)',
+            boxSizing: 'border-box',
+            cursor: 'grab',
+            zIndex: 1,
+          }}
+        />
         {handle(pctIn, 'in')}
         {handle(pctOut, 'out')}
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
         <div style={{ textAlign: 'center' }}>
-          {inThumb && <img src={inThumb} alt="in point" style={{ height: 64, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
-          <div className="muted" style={{ fontSize: 12 }}>In {fmt(valueIn)}</div>
+          {inThumb && <img src={inThumb} alt={`${inLabel} point`} style={{ height: 64, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
+          <div className="muted" style={{ fontSize: 12 }}>{inLabel} {fmt(valueIn)}</div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          {outThumb && <img src={outThumb} alt="out point" style={{ height: 64, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
-          <div className="muted" style={{ fontSize: 12 }}>Out {fmt(valueOut)}</div>
+          {outThumb && <img src={outThumb} alt={`${outLabel} point`} style={{ height: 64, borderRadius: 6, border: '1px solid var(--border)', display: 'block' }} />}
+          <div className="muted" style={{ fontSize: 12 }}>{outLabel} {fmt(valueOut)}</div>
         </div>
       </div>
     </div>
