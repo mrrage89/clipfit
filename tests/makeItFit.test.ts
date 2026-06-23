@@ -85,3 +85,24 @@ describe('buildMakeItFitArgs', () => {
     expect(a).not.toContain('-x264-params');
   });
 });
+
+describe('buildMakeItFitArgs edits + format', () => {
+  it('prepends edit video filters before scale and seeks for trim', () => {
+    const a = buildMakeItFitArgs({
+      inputName: 'in.mp4', outputName: 'out.mp4', videoKbps: 1000, audioKbps: 128,
+      seek: ['-ss', '2', '-t', '5'], editVf: ['crop=10:20:1:2'], editAf: ['volume=-3dB'],
+    })[0];
+    expect(a.slice(0, 4)).toEqual(['-ss', '2', '-t', '5']);
+    const vf = a[a.indexOf('-vf') + 1];
+    expect(vf.startsWith('crop=10:20:1:2,scale=')).toBe(true);
+    expect(a[a.indexOf('-af') + 1]).toBe('volume=-3dB');
+  });
+  it('webm format uses vp9 + opus and no faststart', () => {
+    const a = buildMakeItFitArgs({
+      inputName: 'in.mp4', outputName: 'out.webm', videoKbps: 1000, audioKbps: 128, format: 'webm',
+    })[0];
+    expect(a.join(' ')).toContain('libvpx-vp9');
+    expect(a.join(' ')).toContain('libopus');
+    expect(a).not.toContain('+faststart');
+  });
+});

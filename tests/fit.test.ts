@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { fitJob, bestPreset } from '../src/jobs/fit';
+import type { Edits } from '../src/jobs/editChain';
 
 const ctx = { durationSec: 60, width: 1920, height: 1080, hasAudio: true };
 
@@ -66,5 +67,31 @@ describe('fitJob preset wiring', () => {
       { targetBytes: 25 * 1024 * 1024, mute: false, quality: 'balanced' },
     )[0];
     expect(a.join(' ')).toContain('-preset fast');
+  });
+});
+
+describe('fitJob edits + format', () => {
+  const ctx2 = { durationSec: 60, width: 1920, height: 1080, hasAudio: true };
+  const bps = (p: string[][]) => Number(p[0][p[0].indexOf('-b:v') + 1].replace('k', ''));
+
+  it('budgets bitrate from the trimmed duration', () => {
+    const edits: Edits = { trim: { startSec: 0, endSec: 30 } }; // half the clip
+    const full = fitJob.buildPasses('in.mp4', 'out.mp4', ctx2, {
+      targetBytes: 25 * 1024 * 1024, mute: false, quality: 'balanced', format: 'mp4',
+    });
+    const trimmed = fitJob.buildPasses('in.mp4', 'out.mp4', ctx2, {
+      targetBytes: 25 * 1024 * 1024, mute: false, quality: 'balanced', format: 'mp4', edits,
+    });
+    expect(bps(trimmed)).toBeGreaterThan(bps(full)); // shorter clip -> more kbps for the same size
+    expect(trimmed[0].slice(0, 2)).toEqual(['-ss', '0']);
+  });
+
+  it('webm format selects the webm output + vp9', () => {
+    const out = fitJob.output({ targetBytes: 1, mute: false, quality: 'balanced', format: 'webm' });
+    expect(out.downloadName.endsWith('.webm')).toBe(true);
+    const a = fitJob.buildPasses('in.mp4', out.name, ctx2, {
+      targetBytes: 25 * 1024 * 1024, mute: false, quality: 'balanced', format: 'webm',
+    });
+    expect(a[0].join(' ')).toContain('libvpx-vp9');
   });
 });
