@@ -17,6 +17,7 @@ export function TrimScrubber({
   onChange,
   inLabel = 'In',
   outLabel = 'Out',
+  maxLength,
 }: {
   duration: number;
   strip: string[];
@@ -25,6 +26,7 @@ export function TrimScrubber({
   onChange: (inSec: number, outSec: number) => void;
   inLabel?: string;
   outLabel?: string;
+  maxLength?: number;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
@@ -45,9 +47,16 @@ export function TrimScrubber({
     const d = drag.current;
     if (!d) return;
     if (d.mode === 'in') {
-      onChange(Math.min(timeAt(e.clientX), valueOut - 0.1), valueOut);
+      const ni = Math.max(0, Math.min(timeAt(e.clientX), valueOut - 0.1));
+      // past the max length? drag the other end along instead of growing
+      let no = valueOut;
+      if (maxLength && no - ni > maxLength) no = ni + maxLength;
+      onChange(ni, Math.min(no, duration));
     } else if (d.mode === 'out') {
-      onChange(valueIn, Math.max(timeAt(e.clientX), valueIn + 0.1));
+      const no = Math.min(duration, Math.max(timeAt(e.clientX), valueIn + 0.1));
+      let ni = valueIn;
+      if (maxLength && no - ni > maxLength) ni = no - maxLength;
+      onChange(Math.max(0, ni), no);
     } else {
       // slide the whole selection, keeping its length
       const len = d.startOut - d.startIn;
