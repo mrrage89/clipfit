@@ -45,4 +45,21 @@ describe('gifJob', () => {
       expect(pass).not.toContain('-t');
     }
   });
+
+  it('reduces palette with max_colors when maxColors < 256', () => {
+    const passes = gifJob.buildPasses('in.mp4', 'out.gif', ctx, { fps: 10, width: 480, maxColors: 64 });
+    expect(passes[0].join(' ')).toContain('palettegen=max_colors=64');
+  });
+
+  it('uses the full palette (no max_colors) by default', () => {
+    const passes = gifJob.buildPasses('in.mp4', 'out.gif', ctx, { fps: 10, width: 480 });
+    expect(passes[0].join(' ')).not.toContain('max_colors');
+  });
+
+  it('applies the chosen dither mode', () => {
+    const none = gifJob.buildPasses('in.mp4', 'out.gif', ctx, { fps: 10, width: 480, dither: 'none' });
+    expect(none[1].join(' ')).toContain('paletteuse=dither=none');
+    const bayer = gifJob.buildPasses('in.mp4', 'out.gif', ctx, { fps: 10, width: 480, dither: 'bayer' });
+    expect(bayer[1].join(' ')).toContain('dither=bayer');
+  });
 });

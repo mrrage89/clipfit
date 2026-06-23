@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react';
 import { extractFilmstrip, probeFile, loadEngine, runJob } from '../engine/ffmpegEngine';
 import { TrimScrubber } from './TrimScrubber';
+import { Select } from './Select';
 import { gifJob, type GifParams } from '../jobs/gif';
 import { humanizeBytes } from '../lib/format';
 
 const STRIP = 10;
 const MAX_LEN = 5;
+
+// quality presets — fewer colors roughly halves the file at modest quality cost
+const QUALITY = {
+  small: { maxColors: 64, dither: 'bayer' as const },
+  sharp: { maxColors: 256, dither: 'sierra' as const },
+};
 
 export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParams) => void }) {
   const [err, setErr] = useState<string | null>(null);
@@ -13,10 +20,13 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
   const [strip, setStrip] = useState<string[]>([]);
   const [trimIn, setTrimIn] = useState(0);
   const [trimOut, setTrimOut] = useState(MAX_LEN);
-  const [fps, setFps] = useState(12);
+  const [fps, setFps] = useState(10);
   const [width, setWidth] = useState(480);
+  const [quality, setQuality] = useState<'small' | 'sharp'>('small');
   const [estimate, setEstimate] = useState<number | null>(null);
   const [estimating, setEstimating] = useState(false);
+
+  const tune = QUALITY[quality];
 
   useEffect(() => {
     let alive = true;
@@ -46,7 +56,7 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
   // a stale estimate would mislead — clear it whenever the settings change
   useEffect(() => {
     setEstimate(null);
-  }, [trimIn, trimOut, fps, width]);
+  }, [trimIn, trimOut, fps, width, quality]);
 
   async function estimateSize() {
     if (lengthSec <= 0) return;
@@ -57,7 +67,7 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
       const out = await runJob({
         file,
         job: gifJob,
-        params: { fps, width, startSec: trimIn, lengthSec: sampleLen },
+        params: { fps, width, startSec: trimIn, lengthSec: sampleLen, ...tune },
         onProgress: () => {},
       });
       setEstimate(out.blob.size * (lengthSec / sampleLen));
@@ -94,12 +104,19 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
 
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
         <div className="field" style={{ width: 'auto' }}>
+          <span className="field-label">Quality</span>
+          <Select value={quality} onChange={(v) => setQuality(v as 'small' | 'sharp')}>
+            <option value="small">Smaller file</option>
+            <option value="sharp">Sharper (larger)</option>
+          </Select>
+        </div>
+        <div className="field" style={{ width: 'auto' }}>
           <span className="field-label">FPS</span>
-          <input type="number" min={1} value={fps} style={{ width: 80 }} onChange={(e) => setFps(Number(e.target.value))} />
+          <input type="number" min={1} value={fps} style={{ width: 70 }} onChange={(e) => setFps(Number(e.target.value))} />
         </div>
         <div className="field" style={{ width: 'auto' }}>
           <span className="field-label">Width (px)</span>
-          <input type="number" min={1} value={width} style={{ width: 100 }} onChange={(e) => setWidth(Number(e.target.value))} />
+          <input type="number" min={1} value={width} style={{ width: 90 }} onChange={(e) => setWidth(Number(e.target.value))} />
         </div>
       </div>
 
@@ -122,7 +139,7 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
         className="primary"
         style={{ width: '100%' }}
         disabled={estimating}
-        onClick={() => onRun({ fps, width, startSec: trimIn, lengthSec })}
+        onClick={() => onRun({ fps, width, startSec: trimIn, lengthSec, ...tune })}
       >
         Make GIF
       </button>
