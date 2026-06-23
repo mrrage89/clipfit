@@ -260,3 +260,6 @@ button.switch.on .switch-knob { transform: translateX(22px); }
 .segmented button { flex: 0 0 auto; padding: 6px 14px; }
 .segmented.full { display: flex; width: 100%; }
 .segmented.full button { flex: 1; }
+
+/* compact segmented: equal-width halves for symmetry (sized to the longest label) */
+.segmented:not(.full) button { flex: 1 1 0; min-width: 7.5em; }
