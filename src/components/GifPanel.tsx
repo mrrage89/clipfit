@@ -14,7 +14,15 @@ const QUALITY = {
   sharp: { maxColors: 256, dither: 'sierra' as const },
 };
 
-export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParams) => void }) {
+export function GifPanel({
+  file,
+  onRun,
+  onExportAudio,
+}: {
+  file: File;
+  onRun: (params: GifParams) => void;
+  onExportAudio: () => void;
+}) {
   const [err, setErr] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [strip, setStrip] = useState<string[]>([]);
@@ -135,14 +143,19 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
         )}
       </div>
 
-      <button
-        className="primary"
-        style={{ width: '100%' }}
-        disabled={estimating}
-        onClick={() => onRun({ fps, width, startSec: trimIn, lengthSec, ...tune })}
-      >
-        Make GIF
-      </button>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button
+          className="primary"
+          style={{ flex: 1 }}
+          disabled={estimating}
+          onClick={() => onRun({ fps, width, startSec: trimIn, lengthSec, ...tune })}
+        >
+          Make GIF
+        </button>
+        <button className="primary" style={{ flex: 1 }} onClick={onExportAudio}>
+          Export audio (MP3)
+        </button>
+      </div>
     </div>
   );
 }

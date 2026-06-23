@@ -15,6 +15,7 @@ export const PRESETS: SizeTarget[] = [
 
 export function CompressPanel({
   onStart,
+  onExportAudio,
 }: {
   onStart: (
     target: SizeTarget,
@@ -22,6 +23,7 @@ export function CompressPanel({
     quality: 'balanced' | 'best',
     format: 'mp4' | 'webm',
   ) => void;
+  onExportAudio: () => void;
 }) {
   const [mute, setMute] = useState(false);
   const [idx, setIdx] = useState(1); // Discord (25 MB)
@@ -67,20 +69,21 @@ export function CompressPanel({
         Best is two-pass — sharper at the same size, but slower.
       </span>
 
-      <Toggle on={mute} onChange={setMute}>
-        Mute (remove audio)
-      </Toggle>
-
-      <div className="field">
-        <span className="field-label">Fit to</span>
-        <Select value={idx} onChange={(v) => setIdx(Number(v))}>
-          {PRESETS.map((p, i) => (
-            <option key={p.label} value={i}>
-              {p.label}
-            </option>
-          ))}
-          <option value={PRESETS.length}>Custom size…</option>
-        </Select>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+        <Toggle on={mute} onChange={setMute}>
+          Mute (remove audio)
+        </Toggle>
+        <div className="field" style={{ width: 'auto' }}>
+          <span className="field-label">Fit to</span>
+          <Select style={{ width: 190 }} value={idx} onChange={(v) => setIdx(Number(v))}>
+            {PRESETS.map((p, i) => (
+              <option key={p.label} value={i}>
+                {p.label}
+              </option>
+            ))}
+            <option value={PRESETS.length}>Custom size…</option>
+          </Select>
+        </div>
       </div>
       {isCustom && (
         <div className="field">
@@ -89,9 +92,14 @@ export function CompressPanel({
         </div>
       )}
 
-      <button className="primary" style={{ width: '100%' }} onClick={go}>
-        Compress
-      </button>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <button className="primary" style={{ flex: 1 }} onClick={go}>
+          Compress
+        </button>
+        <button className="primary" style={{ flex: 1 }} onClick={onExportAudio}>
+          Export audio (MP3)
+        </button>
+      </div>
     </div>
   );
 }

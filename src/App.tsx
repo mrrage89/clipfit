@@ -147,20 +147,22 @@ export default function App() {
                 onStart={(t, mute, quality, format) =>
                   run(fitJob, { targetBytes: t.bytes, mute, quality, format, edits: activeEdits }, t.bytes)
                 }
+                onExportAudio={() => run(audioJob, { format: 'mp3', edits: activeEdits })}
               />
             )}
             {output === 'gif' && (
               <>
-                <GifPanel file={file} onRun={(p) => run(gifJob, p)} />
+                <GifPanel
+                  file={file}
+                  onRun={(p) => run(gifJob, p)}
+                  onExportAudio={() => run(audioJob, { format: 'mp3', edits: activeEdits })}
+                />
                 <p className="muted" style={{ fontSize: 12, margin: 0 }}>
                   Edit controls don't affect GIF — use the options here.
                 </p>
               </>
             )}
 
-            <button onClick={() => run(audioJob, { format: 'mp3', edits: activeEdits })}>
-              Export audio (MP3)
-            </button>
             <button onClick={() => setFile(null)} style={{ width: '100%' }}>
               Choose a different file
             </button>
