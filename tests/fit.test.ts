@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fitJob } from '../src/jobs/fit';
+import { fitJob, bestPreset } from '../src/jobs/fit';
 
 const ctx = { durationSec: 60, width: 1920, height: 1080, hasAudio: true };
 
@@ -35,5 +35,36 @@ describe('fitJob.buildPasses', () => {
     expect(passes).toHaveLength(2);
     expect(passes[0].join(' ')).toContain('-pass 1');
     expect(passes[1].join(' ')).toContain('-pass 2');
+  });
+});
+
+describe('bestPreset', () => {
+  it('uses a slower x264 preset for shorter clips, bounded for long ones', () => {
+    expect(bestPreset(10)).toBe('veryslow');
+    expect(bestPreset(20)).toBe('veryslow');
+    expect(bestPreset(45)).toBe('slower');
+    expect(bestPreset(60)).toBe('slower');
+    expect(bestPreset(120)).toBe('slow');
+  });
+});
+
+describe('fitJob preset wiring', () => {
+  it('best uses the duration-adaptive preset', () => {
+    const short = { durationSec: 10, width: 1920, height: 1080, hasAudio: true };
+    const passes = fitJob.buildPasses('in.mp4', 'out.mp4', short, {
+      targetBytes: 25 * 1024 * 1024,
+      mute: false,
+      quality: 'best',
+    });
+    expect(passes[1].join(' ')).toContain('-preset veryslow');
+  });
+  it('balanced still uses the fast preset', () => {
+    const a = fitJob.buildPasses(
+      'in.mp4',
+      'out.mp4',
+      { durationSec: 60, width: 1920, height: 1080, hasAudio: true },
+      { targetBytes: 25 * 1024 * 1024, mute: false, quality: 'balanced' },
+    )[0];
+    expect(a.join(' ')).toContain('-preset fast');
   });
 });

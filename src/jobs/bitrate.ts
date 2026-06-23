@@ -29,8 +29,9 @@ export function isTargetAchievable(input: BitrateInput): boolean {
 // quality. Combined with the scale filter's min(dim, source), this never
 // upscales — it just stops over-downscaling when the budget allows more pixels.
 export function pickMaxDimension(videoKbps: number): number {
-  if (videoKbps >= 2500) return 1920;
-  if (videoKbps >= 1200) return 1280;
-  if (videoKbps >= 600) return 854;
-  return 640;
+  if (videoKbps >= 3500) return 1920;
+  if (videoKbps >= 1800) return 1280;
+  if (videoKbps >= 900) return 854;
+  if (videoKbps >= 450) return 640;
+  return 480;
 }

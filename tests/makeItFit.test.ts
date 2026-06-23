@@ -61,4 +61,27 @@ describe('buildMakeItFitArgs', () => {
     expect(passes[0]).toContain('-an');
     expect(passes[1].join(' ')).toContain('-pass 2');
   });
+
+  it('adds x264 aq-mode params when provided', () => {
+    const a = buildMakeItFitArgs({
+      inputName: 'in.mp4',
+      outputName: 'out.mp4',
+      videoKbps: 1000,
+      audioKbps: 128,
+      aqMode: 3,
+    })[0];
+    const i = a.indexOf('-x264-params');
+    expect(i).toBeGreaterThanOrEqual(0);
+    expect(a[i + 1]).toBe('aq-mode=3');
+  });
+
+  it('omits aq-mode params by default', () => {
+    const a = buildMakeItFitArgs({
+      inputName: 'in.mp4',
+      outputName: 'out.mp4',
+      videoKbps: 1000,
+      audioKbps: 128,
+    })[0];
+    expect(a).not.toContain('-x264-params');
+  });
 });

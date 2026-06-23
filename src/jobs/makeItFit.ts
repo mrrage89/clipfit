@@ -6,6 +6,7 @@ export interface MakeItFitParams {
   maxDimension?: number; // cap longest side (downscale only); default 1280
   preset?: string; // x264 preset; default 'veryfast'
   twoPass?: boolean; // default false (single pass)
+  aqMode?: number; // x264 aq-mode (perceptual bit allocation); omitted when unset
 }
 
 // Returns an array of ffmpeg arg-arrays (one entry per pass).
@@ -16,10 +17,11 @@ export function buildMakeItFitArgs(p: MakeItFitParams): string[][] {
     `scale='min(${maxDim},iw)':'min(${maxDim},ih)':` +
     `force_original_aspect_ratio=decrease:force_divisible_by=2`;
   const audio = p.audioKbps > 0 ? ['-c:a', 'aac', '-b:a', `${p.audioKbps}k`] : ['-an'];
+  const x264params = p.aqMode ? ['-x264-params', `aq-mode=${p.aqMode}`] : [];
   // Video options must be identical across both passes for two-pass to be valid.
   const video = [
     '-vf', scale,
-    '-c:v', 'libx264', '-preset', preset, '-pix_fmt', 'yuv420p', '-b:v', `${p.videoKbps}k`,
+    '-c:v', 'libx264', '-preset', preset, ...x264params, '-pix_fmt', 'yuv420p', '-b:v', `${p.videoKbps}k`,
   ];
 
   if (!p.twoPass) {

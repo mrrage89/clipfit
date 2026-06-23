@@ -26,10 +26,11 @@ describe('computeVideoKbps', () => {
 });
 
 describe('pickMaxDimension', () => {
-  it('scales the resolution cap to the available bitrate', () => {
-    expect(pickMaxDimension(3000)).toBe(1920);
-    expect(pickMaxDimension(1500)).toBe(1280);
-    expect(pickMaxDimension(800)).toBe(854);
-    expect(pickMaxDimension(300)).toBe(640);
+  it('caps resolution lower as bitrate drops (blocking is worse than softness)', () => {
+    expect(pickMaxDimension(4000)).toBe(1920);
+    expect(pickMaxDimension(2000)).toBe(1280);
+    expect(pickMaxDimension(1000)).toBe(854);
+    expect(pickMaxDimension(500)).toBe(640);
+    expect(pickMaxDimension(300)).toBe(480);
   });
 });

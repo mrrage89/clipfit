@@ -8,6 +8,14 @@ export interface FitParams {
   quality: 'balanced' | 'best';
 }
 
+// Slower x264 presets squeeze more quality per bit; cap effort by duration so
+// single-thread wasm encode time stays reasonable on long clips.
+export function bestPreset(durationSec: number): string {
+  if (durationSec <= 20) return 'veryslow';
+  if (durationSec <= 60) return 'slower';
+  return 'slow';
+}
+
 export const fitJob: Job<FitParams> = {
   id: 'fit',
   label: 'Make it fit',
@@ -31,7 +39,7 @@ export const fitJob: Job<FitParams> = {
       videoKbps,
       audioKbps,
       maxDimension: pickMaxDimension(videoKbps),
-      preset: best ? 'medium' : 'fast',
+      preset: best ? bestPreset(ctx.durationSec) : 'fast',
       twoPass: best,
     });
   },
