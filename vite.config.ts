@@ -1,15 +1,11 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
-const coopCoep = {
-  'Cross-Origin-Opener-Policy': 'same-origin',
-  'Cross-Origin-Embedder-Policy': 'require-corp',
-};
-
+// No COOP/COEP headers: the single-thread ffmpeg core doesn't need cross-origin
+// isolation (that's only for the SharedArrayBuffer multithread core), and
+// requiring it would needlessly break embedding and some networks/proxies.
 export default defineConfig({
   plugins: [react()],
-  server: { headers: coopCoep },
-  preview: { headers: coopCoep },
   test: {
     environment: 'jsdom',
     globals: true,
