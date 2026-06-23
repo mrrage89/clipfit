@@ -122,7 +122,7 @@ export default function App() {
             <p className="muted" style={{ fontSize: 14 }}>
               {file.name} — {humanizeBytes(file.size)}
             </p>
-            {toolId !== 'edit' && (
+            {toolId !== 'edit' && toolId !== 'gif' && (
               <div style={{ marginBottom: 14 }}>
                 <VideoPreview file={file} />
               </div>
@@ -134,7 +134,7 @@ export default function App() {
                 }
               />
             )}
-            {toolId === 'gif' && <GifPanel onRun={(p) => run(gifJob, p)} />}
+            {toolId === 'gif' && <GifPanel file={file} onRun={(p) => run(gifJob, p)} />}
             {toolId === 'audio' && <AudioPanel onRun={(p) => run(audioJob, p)} />}
             {toolId === 'convert' && <ConvertPanel onRun={(p) => run(convertJob, p)} />}
             {toolId === 'edit' && <StudioEditor file={file} onRun={(p) => run(studioJob, p)} />}
