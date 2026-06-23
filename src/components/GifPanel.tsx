@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
-import { extractFilmstrip, probeFile } from '../engine/ffmpegEngine';
+import { extractFilmstrip, probeFile, loadEngine, runJob } from '../engine/ffmpegEngine';
 import { TrimScrubber } from './TrimScrubber';
-import type { GifParams } from '../jobs/gif';
+import { gifJob, type GifParams } from '../jobs/gif';
+import { humanizeBytes } from '../lib/format';
 
 const STRIP = 10;
-const DEFAULT_LEN = 5;
+const MAX_LEN = 5;
 
 export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParams) => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [strip, setStrip] = useState<string[]>([]);
   const [trimIn, setTrimIn] = useState(0);
-  const [trimOut, setTrimOut] = useState(DEFAULT_LEN);
+  const [trimOut, setTrimOut] = useState(MAX_LEN);
   const [fps, setFps] = useState(12);
   const [width, setWidth] = useState(480);
+  const [estimate, setEstimate] = useState<number | null>(null);
+  const [estimating, setEstimating] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -25,7 +28,7 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
         if (!alive) return;
         setDuration(ctx.durationSec);
         setTrimIn(0);
-        setTrimOut(Math.min(DEFAULT_LEN, ctx.durationSec));
+        setTrimOut(Math.min(MAX_LEN, ctx.durationSec));
         const s = await extractFilmstrip(file, STRIP);
         if (alive) setStrip(s);
       } catch (e) {
@@ -39,7 +42,31 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
 
   const lengthSec = Math.max(0, trimOut - trimIn);
   const frames = Math.round(fps * lengthSec);
-  const long = lengthSec > 15;
+
+  // a stale estimate would mislead — clear it whenever the settings change
+  useEffect(() => {
+    setEstimate(null);
+  }, [trimIn, trimOut, fps, width]);
+
+  async function estimateSize() {
+    if (lengthSec <= 0) return;
+    setEstimating(true);
+    try {
+      await loadEngine();
+      const sampleLen = Math.min(1, lengthSec);
+      const out = await runJob({
+        file,
+        job: gifJob,
+        params: { fps, width, startSec: trimIn, lengthSec: sampleLen },
+        onProgress: () => {},
+      });
+      setEstimate(out.blob.size * (lengthSec / sampleLen));
+    } catch {
+      setEstimate(null);
+    } finally {
+      setEstimating(false);
+    }
+  }
 
   if (err) return <p style={{ color: 'var(--danger)' }}>{err}</p>;
   if (duration === 0) return <p>Preparing… (loading engine on first use)</p>;
@@ -48,7 +75,7 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
       <div>
         <div className="section-label" style={{ marginBottom: 8 }}>
-          GIF slice — drag to slide, drag the ends to resize{strip.length === 0 ? ' · loading…' : ''}
+          GIF slice (max {MAX_LEN}s) — drag to slide{strip.length === 0 ? ' · loading…' : ''}
         </div>
         <TrimScrubber
           duration={duration}
@@ -57,6 +84,7 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
           valueOut={trimOut}
           inLabel="Start"
           outLabel="Stop"
+          maxLength={MAX_LEN}
           onChange={(i, o) => {
             setTrimIn(i);
             setTrimOut(o);
@@ -75,17 +103,25 @@ export function GifPanel({ file, onRun }: { file: File; onRun: (params: GifParam
         </div>
       </div>
 
-      <p
-        className="muted"
-        style={{ fontSize: 12, margin: 0, ...(long ? { color: 'var(--danger)' } : {}) }}
-      >
-        {lengthSec.toFixed(1)}s slice · ≈ {frames} frames. GIFs aren't video-compressed — keep the
-        slice short or the file gets very large.
+      <p className="muted" style={{ fontSize: 12, margin: 0 }}>
+        {lengthSec.toFixed(1)}s slice · ≈ {frames} frames
       </p>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <button type="button" onClick={estimateSize} disabled={estimating || lengthSec <= 0}>
+          {estimating ? 'Estimating…' : 'Estimate size'}
+        </button>
+        {estimate != null && !estimating && (
+          <span className="muted" style={{ fontSize: 13 }}>
+            ≈ {humanizeBytes(estimate)} (estimated)
+          </span>
+        )}
+      </div>
 
       <button
         className="primary"
         style={{ width: '100%' }}
+        disabled={estimating}
         onClick={() => onRun({ fps, width, startSec: trimIn, lengthSec })}
       >
         Make GIF
