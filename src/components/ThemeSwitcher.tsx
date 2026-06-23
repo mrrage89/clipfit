@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { THEMES, applyTheme, loadTheme, type ThemeId } from '../theme/themes';
 import { Select } from './Select';
+import { Toggle } from './Toggle';
 
 export function ThemeSwitcher() {
   const [choice, setChoice] = useState(loadTheme());
@@ -11,7 +12,7 @@ export function ThemeSwitcher() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
       <Select
         value={choice.theme}
         aria-label="Theme"
@@ -23,12 +24,12 @@ export function ThemeSwitcher() {
           </option>
         ))}
       </Select>
-      <button
-        onClick={() => update({ ...choice, mode: choice.mode === 'dark' ? 'light' : 'dark' })}
-        aria-label="Toggle light/dark mode"
+      <Toggle
+        on={choice.mode === 'dark'}
+        onChange={(on) => update({ ...choice, mode: on ? 'dark' : 'light' })}
       >
-        {choice.mode === 'dark' ? 'Light' : 'Dark'}
-      </button>
+        Dark
+      </Toggle>
     </div>
   );
 }

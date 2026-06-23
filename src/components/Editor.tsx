@@ -191,21 +191,21 @@ export function Editor({ file, onChange }: { file: File; onChange: (edits: Edits
           </label>
         </div>
 
-        <div style={{ display: 'flex', alignSelf: 'center', alignItems: 'center', width: 320, justifyContent: 'space-between' }}>
-          <button type="button" className={flipH ? 'toggle-on' : ''} onClick={() => setFlipH(!flipH)} aria-label="Flip horizontal" title="Flip horizontal" style={{ padding: '6px 9px', lineHeight: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
+          <Toggle on={flipH} onChange={setFlipH}>
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ verticalAlign: 'middle' }}>
               <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
               <path d="M9 7 L9 17 L4.5 12 Z" fill="currentColor" />
               <path d="M15 7 L15 17 L19.5 12 Z" fill="currentColor" />
             </svg>
-          </button>
-          <button type="button" className={flipV ? 'toggle-on' : ''} onClick={() => setFlipV(!flipV)} aria-label="Flip vertical" title="Flip vertical" style={{ padding: '6px 9px', lineHeight: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+          </Toggle>
+          <Toggle on={flipV} onChange={setFlipV}>
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ verticalAlign: 'middle' }}>
               <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
               <path d="M7 9 L17 9 L12 4.5 Z" fill="currentColor" />
               <path d="M7 15 L17 15 L12 19.5 Z" fill="currentColor" />
             </svg>
-          </button>
+          </Toggle>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
