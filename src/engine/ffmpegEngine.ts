@@ -10,7 +10,10 @@ let enginePromise: Promise<FFmpeg> | null = null;
 
 async function createEngine(): Promise<FFmpeg> {
   // Single-thread core: growable heap, reliable on large real-world videos.
-  const baseURL = `https://unpkg.com/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
+  // Self-hosted (copied to public/ffmpeg/<version>/ at build time) so there's no
+  // runtime dependency on a third-party CDN. import.meta.env.BASE_URL keeps it
+  // correct if the app is ever served from a subpath.
+  const baseURL = `${import.meta.env.BASE_URL}ffmpeg/${CORE_VERSION}`;
   const ffmpeg = new FFmpeg();
   await ffmpeg.load({
     coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),

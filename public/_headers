@@ -1,3 +1,6 @@
-/*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
+# Self-hosted ffmpeg core lives under a version-stamped path, and Vite asset
+# filenames are content-hashed — both are safe to cache forever.
+/ffmpeg/*
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

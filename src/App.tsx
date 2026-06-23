@@ -20,7 +20,11 @@ import { humanizeBytes } from './lib/format';
 import type { Job } from './jobs/types';
 import type { JobPhase, JobResult } from './types';
 
-const MAX_BYTES = 500 * 1024 * 1024; // single-thread core grows its heap as needed
+// Phones have hard per-tab memory limits, so cap smaller there to avoid OOM crashes.
+const isMobile =
+  typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const MAX_BYTES = (isMobile ? 100 : 500) * 1024 * 1024;
+const WASM_OK = typeof WebAssembly === 'object';
 
 const TOOLS = [
   { id: 'fit', label: 'Compress', desc: 'Shrink a video to fit a size limit (Discord, email, WhatsApp).' },
@@ -54,8 +58,9 @@ export default function App() {
     setError(null);
     if (f.size > MAX_BYTES) {
       setError(
-        `That file is ${humanizeBytes(f.size)}. In-browser processing is limited to about ` +
-          `500 MB — use a desktop tool for larger files.`,
+        `That file is ${humanizeBytes(f.size)}. In-browser processing here is limited to about ` +
+          `${Math.round(MAX_BYTES / (1024 * 1024))} MB${isMobile ? ' on phones' : ''} — try a ` +
+          `shorter clip or use a computer for larger files.`,
       );
       return;
     }
@@ -86,6 +91,20 @@ export default function App() {
     }
   }
 
+  if (!WASM_OK) {
+    return (
+      <main style={{ maxWidth: 520, margin: '2rem auto', padding: '0 1rem' }}>
+        <h1 style={{ fontSize: 24 }}>
+          <span className="accent-text">Clip</span>Fit
+        </h1>
+        <p className="muted">
+          ClipFit processes video using WebAssembly, which this browser doesn't support. Please use
+          an up-to-date version of Chrome, Edge, Firefox, or Safari.
+        </p>
+      </main>
+    );
+  }
+
   return (
     <main
       style={{ maxWidth: 520, margin: '2rem auto', padding: '0 1rem' }}
@@ -102,6 +121,12 @@ export default function App() {
         Compress, convert, trim, crop & more — entirely in your browser. Your file is never
         uploaded.
       </p>
+      {isMobile && (
+        <p className="muted" style={{ marginTop: 6, fontSize: 13 }}>
+          On phones, keep clips short — mobile browsers limit how much video can be processed in
+          memory.
+        </p>
+      )}
 
       <ToolPicker tools={TOOLS} active={toolId} onSelect={selectTool} />
 
