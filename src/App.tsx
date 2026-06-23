@@ -133,6 +133,7 @@ export default function App() {
             {editOn ? <Editor file={file} onChange={setEdits} /> : <VideoPreview file={file} />}
 
             <Segmented
+              full
               value={output}
               onChange={setOutput}
               options={[

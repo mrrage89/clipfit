@@ -254,3 +254,9 @@ button.switch.on .switch-knob { transform: translateX(22px); }
   background: var(--accent); background-image: none; color: var(--on-accent); box-shadow: none;
 }
 .segmented button.primary:hover { background: var(--accent); background-image: none; filter: brightness(1.05); }
+
+/* segmented: content-width by default (small pills); .full fills + equal halves */
+.segmented { display: inline-flex; width: auto; }
+.segmented button { flex: 0 0 auto; padding: 6px 14px; }
+.segmented.full { display: flex; width: 100%; }
+.segmented.full button { flex: 1; }

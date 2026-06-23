@@ -39,9 +39,38 @@ export function CompressPanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+        <div className="field" style={{ width: 'auto' }}>
+          <span className="field-label">Quality</span>
+          <Segmented
+            value={quality}
+            onChange={setQuality}
+            options={[
+              { value: 'balanced', label: 'Balanced' },
+              { value: 'best', label: 'Best' },
+            ]}
+          />
+        </div>
+        <div className="field" style={{ width: 'auto' }}>
+          <span className="field-label">Format</span>
+          <Segmented
+            value={format}
+            onChange={setFormat}
+            options={[
+              { value: 'mp4', label: 'MP4' },
+              { value: 'webm', label: 'WebM' },
+            ]}
+          />
+        </div>
+      </div>
+      <span className="muted" style={{ fontSize: 12 }}>
+        Best is two-pass — sharper at the same size, but slower.
+      </span>
+
       <Toggle on={mute} onChange={setMute}>
         Mute (remove audio)
       </Toggle>
+
       <div className="field">
         <span className="field-label">Fit to</span>
         <Select value={idx} onChange={(v) => setIdx(Number(v))}>
@@ -59,31 +88,7 @@ export function CompressPanel({
           <input type="number" min={1} value={customMb} onChange={(e) => setCustomMb(Number(e.target.value))} />
         </div>
       )}
-      <div className="field">
-        <span className="field-label">Quality</span>
-        <Segmented
-          value={quality}
-          onChange={setQuality}
-          options={[
-            { value: 'balanced', label: 'Balanced' },
-            { value: 'best', label: 'Best' },
-          ]}
-        />
-        <span className="muted" style={{ fontSize: 12 }}>
-          Best is two-pass — sharper at the same size, but slower.
-        </span>
-      </div>
-      <div className="field">
-        <span className="field-label">Format</span>
-        <Segmented
-          value={format}
-          onChange={setFormat}
-          options={[
-            { value: 'mp4', label: 'MP4' },
-            { value: 'webm', label: 'WebM' },
-          ]}
-        />
-      </div>
+
       <button className="primary" style={{ width: '100%' }} onClick={go}>
         Compress
       </button>
