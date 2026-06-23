@@ -39,7 +39,7 @@ export function CompressPanel({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%' }}>
-      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'space-between' }}>
         <div className="field" style={{ width: 'auto' }}>
           <span className="field-label">Quality</span>
           <Segmented
