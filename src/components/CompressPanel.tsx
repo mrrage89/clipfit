@@ -12,22 +12,28 @@ export const PRESETS: SizeTarget[] = [
   { label: 'WhatsApp (16 MB)', bytes: 16 * MB },
 ];
 
-export function TargetPicker({
+export function CompressPanel({
   onStart,
 }: {
-  onStart: (target: SizeTarget, mute: boolean, quality: 'balanced' | 'best') => void;
+  onStart: (
+    target: SizeTarget,
+    mute: boolean,
+    quality: 'balanced' | 'best',
+    format: 'mp4' | 'webm',
+  ) => void;
 }) {
   const [mute, setMute] = useState(false);
-  const [idx, setIdx] = useState(1);
+  const [idx, setIdx] = useState(1); // Discord (25 MB)
   const [customMb, setCustomMb] = useState(25);
   const [quality, setQuality] = useState<'balanced' | 'best'>('balanced');
+  const [format, setFormat] = useState<'mp4' | 'webm'>('mp4');
   const isCustom = idx === PRESETS.length;
 
   function go() {
     const target = isCustom
       ? { label: `Custom (${customMb} MB)`, bytes: customMb * MB }
       : PRESETS[idx];
-    onStart(target, mute, quality);
+    onStart(target, mute, quality, format);
   }
 
   return (
@@ -49,12 +55,7 @@ export function TargetPicker({
       {isCustom && (
         <div className="field">
           <span className="field-label">Size (MB)</span>
-          <input
-            type="number"
-            min={1}
-            value={customMb}
-            onChange={(e) => setCustomMb(Number(e.target.value))}
-          />
+          <input type="number" min={1} value={customMb} onChange={(e) => setCustomMb(Number(e.target.value))} />
         </div>
       )}
       <div className="field">
@@ -62,6 +63,13 @@ export function TargetPicker({
         <Select value={quality} onChange={(v) => setQuality(v as 'balanced' | 'best')}>
           <option value="balanced">Balanced (faster)</option>
           <option value="best">Best (slower, 2-pass)</option>
+        </Select>
+      </div>
+      <div className="field">
+        <span className="field-label">Format</span>
+        <Select value={format} onChange={(v) => setFormat(v as 'mp4' | 'webm')}>
+          <option value="mp4">MP4 (most compatible)</option>
+          <option value="webm">WebM (smaller)</option>
         </Select>
       </div>
       <button className="primary" style={{ width: '100%' }} onClick={go}>

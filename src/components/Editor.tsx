@@ -4,8 +4,7 @@ import { mapCropToSource } from '../lib/cropMath';
 import { TrimScrubber } from './TrimScrubber';
 import { Toggle } from './Toggle';
 import { Select } from './Select';
-import type { StudioParams } from '../jobs/studio';
-import type { EditParams } from '../jobs/edit';
+import type { Edits } from '../jobs/editChain';
 
 interface Box {
   x: number;
@@ -23,13 +22,9 @@ const DISPLAY_MAX = 460;
 const STRIP = 10;
 const MIN = 20;
 
-export function StudioEditor({
-  file,
-  onRun,
-}: {
-  file: File;
-  onRun: (params: StudioParams) => void;
-}) {
+// Controlled editor: owns trim/crop/transform state and reports the assembled
+// Edits up so whichever output (compress/audio) bakes them into one pass.
+export function Editor({ file, onChange }: { file: File; onChange: (edits: Edits) => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [duration, setDuration] = useState(0);
   const [frame, setFrame] = useState<Frame | null>(null);
@@ -84,6 +79,20 @@ export function StudioEditor({
   const dispW = frame ? Math.min(DISPLAY_MAX, frame.srcW) : DISPLAY_MAX;
   const dispH = frame ? Math.round((dispW * frame.srcH) / frame.srcW) : 0;
 
+  // Report the assembled edits up whenever anything changes.
+  useEffect(() => {
+    const edits: Edits = {};
+    if (trimIn > 0.05 || trimOut < duration - 0.05) edits.trim = { startSec: trimIn, endSec: trimOut };
+    if (cropOn && frame) edits.crop = mapCropToSource(box, dispW, dispH, frame.srcW, frame.srcH);
+    if (rotate) edits.rotate = rotate;
+    if (flipH) edits.flipH = true;
+    if (flipV) edits.flipV = true;
+    if (speed !== 1) edits.speed = speed;
+    if (fps > 0) edits.fps = fps;
+    if (volumeDb !== 0) edits.volumeDb = volumeDb;
+    onChange(edits);
+  }, [trimIn, trimOut, cropOn, box, frame, rotate, flipH, flipV, speed, fps, volumeDb, duration, dispW, dispH, onChange]);
+
   function clamp(b: Box): Box {
     let { x, y, w, h } = b;
     w = Math.max(MIN, w);
@@ -106,25 +115,6 @@ export function StudioEditor({
     const dy = e.clientY - d.sy;
     if (d.mode === 'move') setBox(clamp({ ...d.start, x: d.start.x + dx, y: d.start.y + dy }));
     else setBox(clamp({ ...d.start, w: d.start.w + dx, h: d.start.h + dy }));
-  }
-
-  function doExport() {
-    const params: StudioParams = {};
-    if (trimIn > 0.05 || trimOut < duration - 0.05) {
-      params.trim = { startSec: trimIn, endSec: trimOut };
-    }
-    if (cropOn && frame) {
-      params.crop = mapCropToSource(box, dispW, dispH, frame.srcW, frame.srcH);
-    }
-    const edit: EditParams = {};
-    if (rotate) edit.rotate = rotate;
-    if (flipH) edit.flipH = true;
-    if (flipV) edit.flipV = true;
-    if (speed !== 1) edit.speed = speed;
-    if (fps > 0) edit.fps = fps;
-    if (volumeDb !== 0) edit.volumeDb = volumeDb;
-    if (Object.keys(edit).length) params.edit = edit;
-    onRun(params);
   }
 
   if (err) return <p style={{ color: 'var(--danger)' }}>{err}</p>;
@@ -202,28 +192,14 @@ export function StudioEditor({
         </div>
 
         <div style={{ display: 'flex', alignSelf: 'center', alignItems: 'center', width: 320, justifyContent: 'space-between' }}>
-          <button
-            type="button"
-            className={flipH ? 'toggle-on' : ''}
-            onClick={() => setFlipH(!flipH)}
-            aria-label="Flip horizontal"
-            title="Flip horizontal"
-            style={{ padding: '6px 9px', lineHeight: 0 }}
-          >
+          <button type="button" className={flipH ? 'toggle-on' : ''} onClick={() => setFlipH(!flipH)} aria-label="Flip horizontal" title="Flip horizontal" style={{ padding: '6px 9px', lineHeight: 0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
               <path d="M9 7 L9 17 L4.5 12 Z" fill="currentColor" />
               <path d="M15 7 L15 17 L19.5 12 Z" fill="currentColor" />
             </svg>
           </button>
-          <button
-            type="button"
-            className={flipV ? 'toggle-on' : ''}
-            onClick={() => setFlipV(!flipV)}
-            aria-label="Flip vertical"
-            title="Flip vertical"
-            style={{ padding: '6px 9px', lineHeight: 0 }}
-          >
+          <button type="button" className={flipV ? 'toggle-on' : ''} onClick={() => setFlipV(!flipV)} aria-label="Flip vertical" title="Flip vertical" style={{ padding: '6px 9px', lineHeight: 0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
               <path d="M7 9 L17 9 L12 4.5 Z" fill="currentColor" />
@@ -235,15 +211,7 @@ export function StudioEditor({
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
           <label>
             Vol
-            <input
-              type="range"
-              min={-20}
-              max={20}
-              step={1}
-              value={volumeDb}
-              style={{ width: 140 }}
-              onChange={(e) => setVolumeDb(Number(e.target.value))}
-            />
+            <input type="range" min={-20} max={20} step={1} value={volumeDb} style={{ width: 140 }} onChange={(e) => setVolumeDb(Number(e.target.value))} />
             <span className="muted" style={{ minWidth: 44, fontSize: 12 }}>
               {volumeDb > 0 ? '+' : ''}
               {volumeDb} dB
@@ -251,10 +219,6 @@ export function StudioEditor({
           </label>
         </div>
       </div>
-
-      <button className="primary" onClick={doExport} style={{ alignSelf: 'flex-start' }}>
-        Export
-      </button>
     </div>
   );
 }

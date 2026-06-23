@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { gifJob } from '../src/jobs/gif';
 import { audioJob } from '../src/jobs/audio';
-import { convertJob } from '../src/jobs/convert';
 import { trimJob } from '../src/jobs/trim';
 
 const ctx = { durationSec: 30, width: 1920, height: 1080, hasAudio: true };
@@ -29,17 +28,6 @@ describe('audioJob', () => {
     const out = audioJob.output({ format: 'wav' });
     expect(out.name).toBe('output.wav');
     expect(audioJob.buildPasses('in.mp4', out.name, ctx, { format: 'wav' })[0]).toContain('pcm_s16le');
-  });
-});
-
-describe('convertJob', () => {
-  it('mp4 → libx264', () => {
-    expect(convertJob.buildPasses('in.mkv', 'output.mp4', ctx, { target: 'mp4' })[0]).toContain('libx264');
-  });
-  it('webm → libvpx-vp9 / video/webm', () => {
-    const out = convertJob.output({ target: 'webm' });
-    expect(out.mime).toBe('video/webm');
-    expect(convertJob.buildPasses('in.mp4', out.name, ctx, { target: 'webm' })[0]).toContain('libvpx-vp9');
   });
 });
 

@@ -1,22 +1,19 @@
 import { useState } from 'react';
 import { Dropzone } from './components/Dropzone';
-import { TargetPicker } from './components/TargetPicker';
+import { Editor } from './components/Editor';
+import { CompressPanel } from './components/CompressPanel';
 import { GifPanel } from './components/GifPanel';
-import { AudioPanel } from './components/AudioPanel';
-import { ConvertPanel } from './components/ConvertPanel';
-import { StudioEditor } from './components/StudioEditor';
-import { ToolPicker } from './components/ToolPicker';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { VideoPreview } from './components/VideoPreview';
+import { Toggle } from './components/Toggle';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
 import { loadEngine, runJob } from './engine/ffmpegEngine';
 import { fitJob } from './jobs/fit';
 import { gifJob } from './jobs/gif';
 import { audioJob } from './jobs/audio';
-import { convertJob } from './jobs/convert';
-import { studioJob } from './jobs/studio';
 import { humanizeBytes } from './lib/format';
+import type { Edits } from './jobs/editChain';
 import type { Job } from './jobs/types';
 import type { JobPhase, JobResult } from './types';
 
@@ -26,32 +23,23 @@ const isMobile =
 const MAX_BYTES = (isMobile ? 100 : 500) * 1024 * 1024;
 const WASM_OK = typeof WebAssembly === 'object';
 
-const TOOLS = [
-  { id: 'fit', label: 'Compress', desc: 'Shrink a video to fit a size limit (Discord, email, WhatsApp).' },
-  { id: 'gif', label: 'GIF', desc: 'Turn a video into an animated GIF.' },
-  { id: 'audio', label: 'Extract audio', desc: 'Pull the audio out as MP3 or WAV.' },
-  { id: 'convert', label: 'Convert', desc: 'Change the format — MP4 or WebM.' },
-  { id: 'edit', label: 'Edit', desc: 'Trim, crop, rotate, flip, change speed / volume / frame rate.' },
-];
-
 export default function App() {
-  const [toolId, setToolId] = useState('fit');
   const [file, setFile] = useState<File | null>(null);
+  const [editOn, setEditOn] = useState(false);
+  const [edits, setEdits] = useState<Edits>({});
+  const [output, setOutput] = useState<'compress' | 'gif'>('compress');
   const [phase, setPhase] = useState<JobPhase>('idle');
   const [ratio, setRatio] = useState(0);
   const [result, setResult] = useState<JobResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const activeEdits = editOn ? edits : undefined;
 
   function resetRun() {
     setPhase('idle');
     setRatio(0);
     setResult(null);
     setError(null);
-  }
-
-  function selectTool(id: string) {
-    setToolId(id);
-    resetRun(); // keep the file; just switch the tool
   }
 
   function onFile(f: File) {
@@ -65,6 +53,8 @@ export default function App() {
       return;
     }
     setFile(f);
+    setEditOn(false);
+    setEdits({});
     resetRun();
   }
 
@@ -106,12 +96,8 @@ export default function App() {
   }
 
   return (
-    <main
-      style={{ maxWidth: 520, margin: '2rem auto', padding: '0 1rem' }}
-    >
-      <header
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
-      >
+    <main style={{ maxWidth: 520, margin: '2rem auto', padding: '0 1rem' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         <h1 style={{ margin: 0, fontSize: 24 }}>
           <span className="accent-text">Clip</span>Fit
         </h1>
@@ -128,45 +114,58 @@ export default function App() {
         </p>
       )}
 
-      <ToolPicker tools={TOOLS} active={toolId} onSelect={selectTool} />
-
-      <p style={{ marginTop: 10, marginBottom: 0 }}>
-        <span className="accent-text" style={{ fontWeight: 500 }}>
-          {TOOLS.find((t) => t.id === toolId)?.label}
-        </span>
-        <span className="muted"> — {TOOLS.find((t) => t.id === toolId)?.desc}</span>
-      </p>
-
       {error && <p style={{ color: 'var(--danger)', marginTop: 12 }}>{error}</p>}
 
       <div className="card" style={{ marginTop: 16 }}>
         {!file && <Dropzone onFile={onFile} />}
 
         {file && phase === 'idle' && (
-          <>
-            <p className="muted" style={{ fontSize: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <p className="muted" style={{ fontSize: 14, margin: 0 }}>
               {file.name} — {humanizeBytes(file.size)}
             </p>
-            {toolId !== 'edit' && toolId !== 'gif' && (
-              <div style={{ marginBottom: 14 }}>
-                <VideoPreview file={file} />
-              </div>
-            )}
-            {toolId === 'fit' && (
-              <TargetPicker
-                onStart={(t, mute, quality) =>
-                  run(fitJob, { targetBytes: t.bytes, mute, quality }, t.bytes)
+
+            <Toggle on={editOn} onChange={setEditOn}>
+              Edit
+            </Toggle>
+
+            {editOn ? <Editor file={file} onChange={setEdits} /> : <VideoPreview file={file} />}
+
+            <div className="segmented" role="tablist">
+              <button
+                className={output === 'compress' ? 'primary' : ''}
+                onClick={() => setOutput('compress')}
+              >
+                Compress
+              </button>
+              <button className={output === 'gif' ? 'primary' : ''} onClick={() => setOutput('gif')}>
+                GIF
+              </button>
+            </div>
+
+            {output === 'compress' && (
+              <CompressPanel
+                onStart={(t, mute, quality, format) =>
+                  run(fitJob, { targetBytes: t.bytes, mute, quality, format, edits: activeEdits }, t.bytes)
                 }
               />
             )}
-            {toolId === 'gif' && <GifPanel file={file} onRun={(p) => run(gifJob, p)} />}
-            {toolId === 'audio' && <AudioPanel onRun={(p) => run(audioJob, p)} />}
-            {toolId === 'convert' && <ConvertPanel onRun={(p) => run(convertJob, p)} />}
-            {toolId === 'edit' && <StudioEditor file={file} onRun={(p) => run(studioJob, p)} />}
-            <button onClick={() => setFile(null)} style={{ marginTop: 14, width: '100%' }}>
+            {output === 'gif' && (
+              <>
+                <GifPanel file={file} onRun={(p) => run(gifJob, p)} />
+                <p className="muted" style={{ fontSize: 12, margin: 0 }}>
+                  Edit controls don't affect GIF — use the options here.
+                </p>
+              </>
+            )}
+
+            <button onClick={() => run(audioJob, { format: 'mp3', edits: activeEdits })}>
+              Export audio (MP3)
+            </button>
+            <button onClick={() => setFile(null)} style={{ width: '100%' }}>
               Choose a different file
             </button>
-          </>
+          </div>
         )}
 
         {(phase === 'loading-engine' || phase === 'processing') && (
