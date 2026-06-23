@@ -38,7 +38,7 @@ export function Editor({ file, onChange }: { file: File; onChange: (edits: Edits
   const [flipH, setFlipH] = useState(false);
   const [flipV, setFlipV] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [fps, setFps] = useState(0);
+  const [fps, setFps] = useState(30); // sensible default for shared/compressed clips
   const [volumeDb, setVolumeDb] = useState(0);
 
   useEffect(() => {

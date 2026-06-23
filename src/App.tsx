@@ -6,6 +6,7 @@ import { GifPanel } from './components/GifPanel';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { VideoPreview } from './components/VideoPreview';
 import { Toggle } from './components/Toggle';
+import { Segmented } from './components/Segmented';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
 import { loadEngine, runJob } from './engine/ffmpegEngine';
@@ -131,17 +132,14 @@ export default function App() {
 
             {editOn ? <Editor file={file} onChange={setEdits} /> : <VideoPreview file={file} />}
 
-            <div className="segmented" role="tablist">
-              <button
-                className={output === 'compress' ? 'primary' : ''}
-                onClick={() => setOutput('compress')}
-              >
-                Compress
-              </button>
-              <button className={output === 'gif' ? 'primary' : ''} onClick={() => setOutput('gif')}>
-                GIF
-              </button>
-            </div>
+            <Segmented
+              value={output}
+              onChange={setOutput}
+              options={[
+                { value: 'compress', label: 'Compress' },
+                { value: 'gif', label: 'GIF' },
+              ]}
+            />
 
             {output === 'compress' && (
               <CompressPanel

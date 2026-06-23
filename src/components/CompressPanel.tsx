@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { SizeTarget } from '../types';
 import { Toggle } from './Toggle';
 import { Select } from './Select';
+import { Segmented } from './Segmented';
 
 const MB = 1024 * 1024;
 export const PRESETS: SizeTarget[] = [
@@ -60,17 +61,28 @@ export function CompressPanel({
       )}
       <div className="field">
         <span className="field-label">Quality</span>
-        <Select value={quality} onChange={(v) => setQuality(v as 'balanced' | 'best')}>
-          <option value="balanced">Balanced (faster)</option>
-          <option value="best">Best (slower, 2-pass)</option>
-        </Select>
+        <Segmented
+          value={quality}
+          onChange={setQuality}
+          options={[
+            { value: 'balanced', label: 'Balanced' },
+            { value: 'best', label: 'Best' },
+          ]}
+        />
+        <span className="muted" style={{ fontSize: 12 }}>
+          Best is two-pass — sharper at the same size, but slower.
+        </span>
       </div>
       <div className="field">
         <span className="field-label">Format</span>
-        <Select value={format} onChange={(v) => setFormat(v as 'mp4' | 'webm')}>
-          <option value="mp4">MP4 (most compatible)</option>
-          <option value="webm">WebM (smaller)</option>
-        </Select>
+        <Segmented
+          value={format}
+          onChange={setFormat}
+          options={[
+            { value: 'mp4', label: 'MP4' },
+            { value: 'webm', label: 'WebM' },
+          ]}
+        />
       </div>
       <button className="primary" style={{ width: '100%' }} onClick={go}>
         Compress
