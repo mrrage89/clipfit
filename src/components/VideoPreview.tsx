@@ -35,10 +35,15 @@ export function VideoPreview({ file }: { file: File }) {
     maxHeight: 360,
     borderRadius: 'var(--radius)',
     display: 'block',
+    margin: '0 auto',
   } as const;
 
   if (status === 'video') {
-    return <video src={url} controls preload="metadata" onError={fallback} style={mediaStyle} />;
+    return (
+      <div>
+        <video src={url} controls preload="metadata" onError={fallback} style={mediaStyle} />
+      </div>
+    );
   }
   if (status === 'loading') {
     return <p className="muted" style={{ fontSize: 13 }}>Loading preview…</p>;
@@ -47,7 +52,7 @@ export function VideoPreview({ file }: { file: File }) {
     return (
       <div>
         <img src={poster} alt="preview frame" style={mediaStyle} />
-        <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+        <p className="muted" style={{ fontSize: 12, marginTop: 4, textAlign: 'center' }}>
           Preview frame — your browser can't play this format inline, but it'll still process fine.
         </p>
       </div>
