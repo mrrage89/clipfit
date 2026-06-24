@@ -10,16 +10,22 @@ let enginePromise: Promise<FFmpeg> | null = null;
 
 async function createEngine(): Promise<FFmpeg> {
   // Single-thread core: growable heap, reliable on large real-world videos.
-  // Loaded from the jsdelivr CDN: Cloudflare's 25 MiB static-asset cap can't hold
-  // the ~31 MB core wasm, so it can't be self-hosted on Pages/Workers. jsdelivr is
-  // a highly reliable multi-CDN with permissive CORS. (Cloudflare R2 is a future
-  // option to drop the third-party dependency.)
-  const baseURL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
   const ffmpeg = new FFmpeg();
-  await ffmpeg.load({
-    coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-    wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-  });
+  if (import.meta.env.VITE_EXT === '1') {
+    // Browser-extension build: the core is BUNDLED locally (MV3 forbids remote
+    // code). Absolute chrome-extension:// URL so the worker (which lives under
+    // /assets/) resolves it against the extension page, not its own path.
+    const base = new URL(`ffmpeg/${CORE_VERSION}/`, location.href).href;
+    await ffmpeg.load({ coreURL: `${base}ffmpeg-core.js`, wasmURL: `${base}ffmpeg-core.wasm` });
+  } else {
+    // Web build: core from jsdelivr (Cloudflare's 25 MiB asset cap can't hold the
+    // ~31MB wasm). toBlobURL makes the cross-origin core same-origin for the worker.
+    const baseURL = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+  }
   return ffmpeg;
 }
 
