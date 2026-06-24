@@ -1,7 +1,7 @@
 // Runs after `vite build --mode extension`: bundles the ffmpeg core into the
 // output, copies the extension static files (manifest, background, icons), and
 // emits the Firefox variant (same app, different manifest).
-import { copyFileSync, mkdirSync, readFileSync, cpSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, cpSync, rmSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +19,10 @@ function addExtras(outDir, manifestFile) {
   copyFileSync(join(root, 'extension', manifestFile), join(out, 'manifest.json'));
   copyFileSync(join(root, 'extension', 'background.js'), join(out, 'background.js'));
   cpSync(join(root, 'extension', 'icons'), join(out, 'icons'), { recursive: true });
+  // Chrome reserves filenames starting with "_" (e.g. Cloudflare's _headers).
+  for (const name of readdirSync(out)) {
+    if (name.startsWith('_')) rmSync(join(out, name), { recursive: true, force: true });
+  }
   console.log(`packed ${outDir} (core ${version}, ${manifestFile})`);
 }
 
