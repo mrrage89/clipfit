@@ -33,6 +33,7 @@ export default function App() {
   const [ratio, setRatio] = useState(0);
   const [result, setResult] = useState<JobResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendingLarge, setPendingLarge] = useState<File | null>(null);
 
   const activeEdits = editOn ? edits : undefined;
 
@@ -43,20 +44,23 @@ export default function App() {
     setError(null);
   }
 
-  function onFile(f: File) {
-    setError(null);
-    if (f.size > MAX_BYTES) {
-      setError(
-        `That file is ${humanizeBytes(f.size)}. In-browser processing here is limited to about ` +
-          `${Math.round(MAX_BYTES / (1024 * 1024))} MB${isMobile ? ' on phones' : ''} — try a ` +
-          `shorter clip or use a computer for larger files.`,
-      );
-      return;
-    }
+  function accept(f: File) {
+    setPendingLarge(null);
     setFile(f);
     setEditOn(false);
     setEdits({});
     resetRun();
+  }
+
+  function onFile(f: File) {
+    setError(null);
+    setPendingLarge(null);
+    // Over the soft cap → don't reject outright; let the user proceed knowingly.
+    if (f.size > MAX_BYTES) {
+      setPendingLarge(f);
+      return;
+    }
+    accept(f);
   }
 
   async function run<P>(job: Job<P>, params: P, targetBytes?: number) {
@@ -118,7 +122,26 @@ export default function App() {
       {error && <p style={{ color: 'var(--danger)', marginTop: 12 }}>{error}</p>}
 
       <div className="card" style={{ marginTop: 16 }}>
-        {!file && <Dropzone onFile={onFile} />}
+        {!file && !pendingLarge && <Dropzone onFile={onFile} />}
+
+        {!file && pendingLarge && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <p style={{ color: 'var(--danger)', margin: 0, fontWeight: 500 }}>
+              {pendingLarge.name} — {humanizeBytes(pendingLarge.size)}
+            </p>
+            <p className="muted" style={{ fontSize: 13, margin: 0 }}>
+              That's over the ~{Math.round(MAX_BYTES / (1024 * 1024))} MB limit. Processing keeps the
+              whole file in memory (the engine caps at 2 GB), so it may run out of memory and fail
+              {isMobile ? ' — very likely on a phone' : ' on weaker machines'}. You can still try.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="primary" onClick={() => accept(pendingLarge)}>
+                Try anyway
+              </button>
+              <button onClick={() => setPendingLarge(null)}>Pick a different file</button>
+            </div>
+          </div>
+        )}
 
         {file && phase === 'idle' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
