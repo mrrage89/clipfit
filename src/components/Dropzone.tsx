@@ -32,7 +32,7 @@ export function Dropzone({ onFile }: { onFile: (file: File) => void }) {
       <input
         ref={inputRef}
         type="file"
-        accept="video/*"
+        accept="video/*,.mov,.qt,.mkv,.webm,.avi,.m4v,.mp4,.flv,.wmv,.mpg,.mpeg,.3gp,.ogv,.ts,.mts"
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
