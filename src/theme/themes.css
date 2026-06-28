@@ -269,3 +269,8 @@ button.switch.on .switch-knob { transform: translateX(22px); }
 .controls input[type='number'] {
   background-color: var(--surface);
 }
+
+/* flip pill buttons: surface bg (off state) for contrast against the controls bar */
+.controls button:not(.primary):not(.toggle-on) {
+  background-color: var(--surface);
+}
