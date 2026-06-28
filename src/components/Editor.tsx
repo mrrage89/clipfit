@@ -132,7 +132,18 @@ export function Editor({ file, onChange }: { file: File; onChange: (edits: Edits
           onPointerUp={() => (drag.current = null)}
           onPointerLeave={() => (drag.current = null)}
         >
-          <img src={frame.url} width={dispW} height={dispH} draggable={false} alt="preview" style={{ display: 'block', borderRadius: 8 }} />
+          <img
+            src={frame.url}
+            width={dispW}
+            height={dispH}
+            draggable={false}
+            alt="preview"
+            style={{
+              display: 'block',
+              borderRadius: 8,
+              transform: `scaleX(${flipH ? -1 : 1}) scaleY(${flipV ? -1 : 1})`,
+            }}
+          />
           {cropOn && (
             <div
               onPointerDown={(e) => startDrag('move', e)}
@@ -191,21 +202,37 @@ export function Editor({ file, onChange }: { file: File; onChange: (edits: Edits
           </label>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 28, flexWrap: 'wrap' }}>
-          <Toggle on={flipH} onChange={setFlipH}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ verticalAlign: 'middle' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            aria-pressed={flipH}
+            title="Flip horizontal"
+            className={flipH ? 'toggle-on' : ''}
+            onClick={() => setFlipH(!flipH)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 999, padding: '7px 16px' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
               <path d="M9 7 L9 17 L4.5 12 Z" fill="currentColor" />
               <path d="M15 7 L15 17 L19.5 12 Z" fill="currentColor" />
             </svg>
-          </Toggle>
-          <Toggle on={flipV} onChange={setFlipV}>
-            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style={{ verticalAlign: 'middle' }}>
+            Flip H
+          </button>
+          <button
+            type="button"
+            aria-pressed={flipV}
+            title="Flip vertical"
+            className={flipV ? 'toggle-on' : ''}
+            onClick={() => setFlipV(!flipV)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 999, padding: '7px 16px' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
               <line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
               <path d="M7 9 L17 9 L12 4.5 Z" fill="currentColor" />
               <path d="M7 15 L17 15 L12 19.5 Z" fill="currentColor" />
             </svg>
-          </Toggle>
+            Flip V
+          </button>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>

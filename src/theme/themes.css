@@ -263,3 +263,9 @@ button.switch.on .switch-knob { transform: translateX(22px); }
 
 /* compact segmented: equal-width halves for symmetry (sized to the longest label) */
 .segmented:not(.full) button { flex: 1 1 0; min-width: 7.5em; }
+
+/* edit controls: lift the dropdowns/inputs off the controls bar for contrast */
+.controls select,
+.controls input[type='number'] {
+  background-color: var(--surface);
+}
