@@ -274,3 +274,46 @@ button.switch.on .switch-knob { transform: translateX(22px); }
 .controls button:not(.primary):not(.toggle-on) {
   background-color: var(--surface);
 }
+
+/* --- additional preset themes --- */
+[data-theme='forest'][data-mode='dark'] {
+  --bg: #0d1410; --surface: #16201a; --surface-2: #1e2c24; --border: #2a3a30;
+  --accent: #22c55e; --accent-2: #14b8a6; --text: #e8f0ea; --text-dim: #8aa394;
+  --on-accent: #04140a; --glow: rgba(34, 197, 94, 0.4);
+}
+[data-theme='forest'][data-mode='light'] {
+  --bg: #f5faf6; --surface: #ffffff; --surface-2: #e9f3ec; --border: #dceadf;
+  --accent: #16a34a; --accent-2: #0d9488; --text: #14201a; --text-dim: #5a7064;
+  --on-accent: #ffffff; --glow: rgba(22, 163, 74, 0.22);
+}
+[data-theme='ocean'][data-mode='dark'] {
+  --bg: #0b1018; --surface: #14202e; --surface-2: #1c2c3e; --border: #2a3c50;
+  --accent: #3b82f6; --accent-2: #06b6d4; --text: #e6eef7; --text-dim: #8499ab;
+  --on-accent: #04101c; --glow: rgba(59, 130, 246, 0.45);
+}
+[data-theme='ocean'][data-mode='light'] {
+  --bg: #f4f8fc; --surface: #ffffff; --surface-2: #e8f1f9; --border: #d9e6f2;
+  --accent: #2563eb; --accent-2: #0891b2; --text: #14202e; --text-dim: #5a6b7c;
+  --on-accent: #ffffff; --glow: rgba(37, 99, 235, 0.22);
+}
+[data-theme='rose'][data-mode='dark'] {
+  --bg: #160d10; --surface: #221319; --surface-2: #2e1c24; --border: #3e2a32;
+  --accent: #f43f5e; --accent-2: #ec4899; --text: #f7eaed; --text-dim: #a3838c;
+  --on-accent: #1a0a0d; --glow: rgba(244, 63, 94, 0.4);
+}
+[data-theme='rose'][data-mode='light'] {
+  --bg: #fdf5f7; --surface: #ffffff; --surface-2: #f8e9ee; --border: #f0dce2;
+  --accent: #e11d48; --accent-2: #db2777; --text: #221319; --text-dim: #7a6a70;
+  --on-accent: #ffffff; --glow: rgba(225, 29, 72, 0.22);
+}
+/* custom: neutral base; --accent family is set inline by applyTheme() */
+[data-theme='custom'][data-mode='dark'] {
+  --bg: #0e0f14; --surface: #181a22; --surface-2: #20232e; --border: #2a2e3a;
+  --accent: #7c6cf6; --accent-2: #9d8cff; --text: #e8e8f0; --text-dim: #8c8c9c;
+  --on-accent: #ffffff; --glow: rgba(124, 108, 246, 0.4);
+}
+[data-theme='custom'][data-mode='light'] {
+  --bg: #f7f7f9; --surface: #ffffff; --surface-2: #eeeef2; --border: #e2e2e8;
+  --accent: #7c6cf6; --accent-2: #9d8cff; --text: #1a1b22; --text-dim: #6b6b78;
+  --on-accent: #ffffff; --glow: rgba(124, 108, 246, 0.22);
+}

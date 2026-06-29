@@ -200,6 +200,18 @@ export default function App() {
 
         {phase === 'error' && <button onClick={resetRun}>Try again</button>}
       </div>
+
+      <footer style={{ textAlign: 'center', marginTop: 18, fontSize: 13 }}>
+        <span className="muted">Free, private, no uploads — </span>
+        <a
+          href="https://ko-fi.com/richardrage"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: 'var(--accent)', fontWeight: 500 }}
+        >
+          ♥ Support ClipFit
+        </a>
+      </footer>
     </main>
   );
 }
