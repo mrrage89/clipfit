@@ -50,11 +50,12 @@ export async function compressFast(p: FastCompressParams): Promise<Blob> {
   const keptDur = (Math.min(endUs, v.durationSec * 1e6) - startUs) / 1e6;
   if (keptDur <= 0) throw new Error('webcodecs: empty trim range');
 
-  const keepAudio =
-    !p.mute &&
-    !!dem.audio &&
-    audioCopyable(dem.audio.codec, p.format) &&
-    !!dem.audio.description;
+  // Don't silently drop wanted audio: if it can't be copied into the target
+  // container, throw so the orchestrator falls back to ffmpeg (which keeps it).
+  if (!p.mute && dem.audio && (!audioCopyable(dem.audio.codec, p.format) || !dem.audio.description)) {
+    throw new Error(`webcodecs: audio (${dem.audio.codec}) not copyable into ${p.format}`);
+  }
+  const keepAudio = !p.mute && !!dem.audio;
   const audioChunksKept = keepAudio
     ? dem.audio!.chunks.filter((c) => c.timestamp >= startUs && c.timestamp < endUs)
     : [];
