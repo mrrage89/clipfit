@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ClipFit — Video Compressor & Editor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Compress, convert, trim, crop & GIF videos right in your browser. No uploads, no watermark, no sign-up.",
   "icons": {
     "16": "icons/icon-16.png",
