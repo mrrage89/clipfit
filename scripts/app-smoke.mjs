@@ -6,6 +6,7 @@ const browser = await puppeteer.launch({
   headless: 'new',
   args: ['--no-sandbox'],
 });
+const VID = process.argv[2] || '/tmp/spike-src.mp4';
 const page = await browser.newPage();
 const engineLogs = [];
 page.on('console', (m) => {
@@ -16,7 +17,7 @@ page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 
 await page.goto('http://localhost:5173/', { waitUntil: 'networkidle2' });
 const input = await page.$('input[type=file]');
-await input.uploadFile('/tmp/spike-src.mp4');
+await input.uploadFile(VID);
 
 await page.waitForFunction(
   () => [...document.querySelectorAll('button.primary')].some((b) => b.textContent.trim() === 'Compress' && !b.closest('.segmented')),
