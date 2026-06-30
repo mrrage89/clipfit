@@ -10,6 +10,8 @@ import { Segmented } from './components/Segmented';
 import { Progress } from './components/Progress';
 import { Result } from './components/Result';
 import { loadEngine, runJob } from './engine/ffmpegEngine';
+import { runCompressFast, compressFast } from './engine/webcodecs/run';
+import { webcodecsCaps } from './engine/webcodecs/caps';
 import { fitJob } from './jobs/fit';
 import { gifJob } from './jobs/gif';
 import { audioJob } from './jobs/audio';
@@ -23,6 +25,20 @@ const isMobile =
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 const MAX_BYTES = (isMobile ? 100 : 500) * 1024 * 1024;
 const WASM_OK = typeof WebAssembly === 'object';
+
+// Edits the WebCodecs fast-path can't yet bake in (trim + mute ARE supported).
+function hasUnsupportedEdits(e?: Edits): boolean {
+  return !!(
+    e &&
+    (e.crop ||
+      e.rotate || // 0 is falsy, so a set non-zero rotation is truthy
+      e.flipH ||
+      e.flipV ||
+      (e.speed && e.speed !== 1) ||
+      (e.fps && e.fps > 0) ||
+      (e.volumeDb && e.volumeDb !== 0))
+  );
+}
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
@@ -79,6 +95,69 @@ export default function App() {
         outputBytes: out.blob.size,
         targetBytes,
       });
+      setPhase('done');
+    } catch (e) {
+      setError((e as Error).message);
+      setPhase('error');
+    }
+  }
+
+  // Compress runs through the WebCodecs fast-path when eligible, else ffmpeg.wasm.
+  async function runCompress(
+    targetBytes: number,
+    mute: boolean,
+    quality: 'balanced' | 'best',
+    format?: 'mp4' | 'webm',
+  ) {
+    if (!file) return;
+    const fmt = format ?? 'mp4';
+    const mime = fmt === 'webm' ? 'video/webm' : 'video/mp4';
+    const downloadName = fmt === 'webm' ? 'clipfit.webm' : 'clipfit-output.mp4';
+    setError(null);
+    setRatio(0);
+    try {
+      setPhase('processing');
+      const caps = await webcodecsCaps();
+      const outputEncodable = fmt === 'webm' ? caps.encodeVp9 || caps.encodeAv1 : caps.encodeAvc;
+      const videoCodec =
+        fmt === 'webm' ? (caps.encodeAv1 ? 'av01.0.04M.08' : 'vp09.00.10.08') : 'avc1.640028';
+      const lname = file.name.toLowerCase();
+      const inputContainer: 'mp4' | 'other' = /\.(mp4|m4v|mov|qt)$/.test(lname) ? 'mp4' : 'other';
+      const { blob, engine } = await runCompressFast({
+        route: {
+          quality,
+          format: fmt,
+          hasUnsupportedEdits: hasUnsupportedEdits(activeEdits),
+          inputContainer,
+          inputDecodable: true, // verified by the pipeline; failure falls back
+          outputEncodable,
+          audioOk: true, // non-copyable wanted audio throws → falls back
+        },
+        fast: () =>
+          compressFast({
+            file,
+            format: fmt,
+            videoCodec,
+            targetBytes,
+            mute,
+            trim: activeEdits?.trim,
+            onProgress: setRatio,
+          }),
+        ffmpeg: async () => {
+          setPhase('loading-engine');
+          await loadEngine();
+          setPhase('processing');
+          const out = await runJob({
+            file,
+            job: fitJob,
+            params: { targetBytes, mute, quality, format: fmt, edits: activeEdits },
+            onProgress: setRatio,
+          });
+          return out.blob;
+        },
+      });
+      console.log('[clipfit] compress engine:', engine);
+      setResult({ blob, downloadName, mime, outputBytes: blob.size, targetBytes });
       setPhase('done');
     } catch (e) {
       setError((e as Error).message);
@@ -167,9 +246,7 @@ export default function App() {
 
             {output === 'compress' && (
               <CompressPanel
-                onStart={(t, mute, quality, format) =>
-                  run(fitJob, { targetBytes: t.bytes, mute, quality, format, edits: activeEdits }, t.bytes)
-                }
+                onStart={(t, mute, quality, format) => runCompress(t.bytes, mute, quality, format)}
                 onExportAudio={() => run(audioJob, { format: 'mp3', edits: activeEdits })}
               />
             )}
