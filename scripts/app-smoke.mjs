@@ -19,6 +19,21 @@ await page.goto('http://localhost:5173/', { waitUntil: 'networkidle2' });
 const input = await page.$('input[type=file]');
 await input.uploadFile(VID);
 
+// Over the soft cap → the app shows a "Try anyway" gate first; click through it.
+await page.waitForFunction(
+  () => {
+    const btns = [...document.querySelectorAll('button')];
+    return (
+      btns.some((b) => b.textContent.trim() === 'Try anyway') ||
+      btns.some((b) => b.textContent.trim() === 'Compress' && b.className.includes('primary') && !b.closest('.segmented'))
+    );
+  },
+  { timeout: 60000 },
+);
+await page.evaluate(() => {
+  const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === 'Try anyway');
+  if (b) b.click();
+});
 await page.waitForFunction(
   () => [...document.querySelectorAll('button.primary')].some((b) => b.textContent.trim() === 'Compress' && !b.closest('.segmented')),
   { timeout: 30000 },
