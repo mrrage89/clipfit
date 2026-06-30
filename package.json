@@ -15,8 +15,11 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
+    "mp4-muxer": "^5.2.2",
+    "mp4box": "^2.4.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "webm-muxer": "^5.1.4"
   },
   "devDependencies": {
     "@ffmpeg/core": "^0.12.10",
