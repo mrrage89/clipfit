@@ -31,22 +31,24 @@ export function ThemeSwitcher() {
         ))}
         <option value="custom">Custom</option>
       </Select>
-      <input
-        type="color"
-        aria-label="Custom accent colour"
-        title="Custom accent colour"
-        value={choice.custom ?? '#7c6cf6'}
-        onChange={(e) => update({ ...choice, theme: 'custom', custom: e.target.value })}
-        style={{
-          width: 32,
-          height: 32,
-          padding: 2,
-          borderRadius: 8,
-          border: '1px solid var(--border)',
-          background: 'var(--surface-2)',
-          cursor: 'pointer',
-        }}
-      />
+      {choice.theme === 'custom' && (
+        <input
+          type="color"
+          aria-label="Custom accent colour"
+          title="Custom accent colour"
+          value={choice.custom ?? '#7c6cf6'}
+          onChange={(e) => update({ ...choice, theme: 'custom', custom: e.target.value })}
+          style={{
+            width: 32,
+            height: 32,
+            padding: 2,
+            borderRadius: 8,
+            border: '1px solid var(--border)',
+            background: 'var(--surface-2)',
+            cursor: 'pointer',
+          }}
+        />
+      )}
       <Toggle
         on={choice.mode === 'dark'}
         onChange={(on) => update({ ...choice, mode: on ? 'dark' : 'light' })}
